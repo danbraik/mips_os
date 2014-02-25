@@ -2,6 +2,9 @@
 # Makefile
 # --------
 
+# Project to compile (use a preprocessor definition)
+PROJECT_TO_COMPILE = TEST_ALLOC
+
 # Executable name
 EXE = prog.exe
 
@@ -12,7 +15,7 @@ OBJ_DIR = obj
 # Compiler
 CC = gcc
 # Compiler options
-CFLAGS = -std=c99 -W -Wall -Wextra -g # -Werror
+CFLAGS = -D $(PROJECT_TO_COMPILE) -std=c99 -W -Wall -Wextra -g # -Werror
 # Linker options
 LDFLAGS = 
 
