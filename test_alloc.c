@@ -13,8 +13,10 @@ int main(int argc, char const *argv[])
 	ptr = mem_alloc(&allocator, 800);
 	mem_free(&allocator, ptr, 800);
 
-	for(int i=0; i < 50; ++i)
+	for(int i=0; i < 50; ++i) {
 		ptr = mem_alloc(&allocator, i+1);
+		mem_free(&allocator, ptr, i+1);
+	}
 
 	return 0;
 }

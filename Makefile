@@ -3,7 +3,7 @@
 # --------
 
 # Project to compile (use a preprocessor definition)
-PROJECT_TO_COMPILE = TEST_ALLOC
+PROJECT_TO_COMPILE = TEST_FILESYSTEM
 
 # Executable name
 EXE = prog.exe
