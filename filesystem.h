@@ -46,29 +46,29 @@ typedef struct fs_list_cell {
 } fs_list_cell;
 
 
+int8_t fs_init_directory(mem_allocator *allocator, fs_file *dir, const char *dirname);
 
-typedef struct fs_cursor {
-	fs_file *root;
-	fs_file *working;
-} fs_cursor;
-
-int fs_init_directory(mem_allocator *allocator, fs_file *dir, const char *dirname);
-
-int fs_add_file(mem_allocator *allocator, 
+int8_t fs_add_regular(mem_allocator *allocator, 
 				fs_file *dir, 
 				const char *filename, 
-				fs_file **newfile);//, fs_cursor *newfile_curs);
+				fs_file **newfile);
 
-int fs_add_dir(mem_allocator *allocator, 
+int8_t fs_add_dir(mem_allocator *allocator, 
 				fs_file *dir, 
 				const char *dirname,
-				fs_file **newdir);//, fs_cursor *newdir_cursor);
+				fs_file **newdir);
+
+int8_t fs_remove_file(mem_allocator *allocator, 
+				fs_file *parent, 
+				const char *name);
+
+
 
 
 
 //void fs_get_root_cursor(fs_file *dir);
 
-void fs_change_directory(fs_cursor *cursor, const char *dirname);
+int8_t fs_get_file(fs_file *root, fs_file *working, const char *filepath);
 
 //int fs_write_file(mem_allocator *allocator, fs_file *file, const uint8_t *data, uint32_t size);
 

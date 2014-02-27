@@ -5,7 +5,7 @@
 #include <inttypes.h>
 
 typedef struct mem_allocator {
-	uint8_t *start; // == next cell
+	uint8_t *start; // == mem_allocator* (next cell)
 	uint32_t size;
 } mem_allocator;
 
@@ -18,5 +18,6 @@ void * mem_alloc(mem_allocator *allocator, uint32_t size);
 
 void mem_free(mem_allocator *allocator, void *ptr, uint32_t size);
 
+void mem_debug(mem_allocator *allocator);
 
 #endif

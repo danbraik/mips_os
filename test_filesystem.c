@@ -33,11 +33,15 @@ int main(int argc, char const *argv[])
 	uint8_t *memory = malloc(MEM_SIZE);
 	mem_init(&allocator, memory, MEM_SIZE);
 
+	mem_debug(&allocator);
+
 	fs_file root;
 	if(fs_init_directory(&allocator, &root, "/") == FS_ERROR)
 		puts("Error pour fs_init_directory");
 
-	if (fs_add_file(&allocator, &root, "monFichier", NULL) == FS_ERROR)
+	mem_debug(&allocator);
+
+	if (fs_add_regular(&allocator, &root, "monFichier", NULL) == FS_ERROR)
 		puts("Error pour fs_add_file");
 
 	fs_file *home, *user;
@@ -47,10 +51,32 @@ int main(int argc, char const *argv[])
 
 
 	fs_add_dir(&allocator, home, "emmett", &user);
-	fs_add_file(&allocator, user, "Lego Movie.avi", NULL);
-	fs_add_file(&allocator, user, "algo.c", NULL);
+	fs_add_regular(&allocator, user, "Lego Movie.avi", NULL);
+	fs_add_regular(&allocator, user, "algo.c", NULL);
 	
 	tree(&root, 0);
+	mem_debug(&allocator);
+
+	if (fs_remove_file(&allocator, user, "algo.c") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+
+	tree(&root, 0);
+
+
+
+	if (fs_remove_file(&allocator, &root, "home") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	tree(&root, 0);
+
+	if (fs_remove_file(&allocator, &root, "usr") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	if (fs_remove_file(&allocator, &root, "tmp") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	if (fs_remove_file(&allocator, &root, "monFichier") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	tree(&root, 0);
+
+	mem_debug(&allocator);
 
 	return 0;
 }

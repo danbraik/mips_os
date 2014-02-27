@@ -4,7 +4,7 @@
 
 
 
-static int _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *name)
+static int8_t _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *name)
 {
 	uint32_t len = strlen(name) + 1;
 	if ((file->name = mem_alloc(allocator, len)) == NULL)
@@ -14,7 +14,7 @@ static int _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *name
 }
 
 
-int fs_init_directory(mem_allocator *allocator, 
+int8_t fs_init_directory(mem_allocator *allocator, 
 					fs_file *dir, 
 					const char *dirname)
 {
@@ -31,7 +31,7 @@ int fs_init_directory(mem_allocator *allocator,
 
 
 
-static int _fs_add_child(mem_allocator *allocator, 
+static int8_t _fs_add_child(mem_allocator *allocator, 
 						fs_file *parent, uint8_t file_type, const char *name, fs_file **newchild)
 {
 	if (parent == NULL || parent->file_type != FS_TYPE_DIRECTORY)
@@ -64,15 +64,78 @@ static int _fs_add_child(mem_allocator *allocator,
 }
 
 
-int fs_add_file(mem_allocator *allocator, fs_file *dir, const char *filename, fs_file **newfile)
+int8_t fs_add_regular(mem_allocator *allocator, fs_file *dir, const char *filename, fs_file **newfile)
 {
 	return _fs_add_child(allocator, dir, FS_TYPE_REGULAR, filename, newfile);
 }
 
-int fs_add_dir(mem_allocator *allocator, fs_file *dir, const char *dirname, fs_file **newdir)
+int8_t fs_add_dir(mem_allocator *allocator, fs_file *dir, const char *dirname, fs_file **newdir)
 {
 	return _fs_add_child(allocator, dir, FS_TYPE_DIRECTORY, dirname, newdir);
 }
 
+static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm)
+{
+	mem_free(allocator, to_rm->name, strlen(to_rm->name)+1);
+	mem_free(allocator, to_rm, sizeof(fs_file));
+}
 
+static void _fs_remove_recursive_files(mem_allocator *allocator,
+	fs_file *parent)
+{
+	fs_list_cell *iterator = parent->data.directory.children;
+	while(iterator != NULL) {
+		fs_file *to_rm = iterator->file;
+
+		if (to_rm->file_type == FS_TYPE_DIRECTORY)
+			_fs_remove_recursive_files(allocator, to_rm);
+
+		_fs_mem_free_file(allocator, to_rm);
+		
+		iterator = iterator->next;
+		mem_free(allocator, iterator, sizeof(fs_list_cell));
+	}
+}
+
+int8_t fs_remove_file(mem_allocator *allocator, 
+				fs_file *parent, 
+				const char *name)
+{
+	if (parent == NULL || parent->file_type != FS_TYPE_DIRECTORY)
+		return FS_ERROR;
+
+	fs_list_cell *iterator = parent->data.directory.children;
+	fs_list_cell **prev_iterator = &(parent->data.directory.children);
+
+	while (iterator != NULL) {
+		fs_file *to_rm = iterator->file;
+
+		if (strcmp(name, to_rm->name) == 0) {
+			if (to_rm->file_type == FS_TYPE_DIRECTORY)
+				_fs_remove_recursive_files(allocator, to_rm);
+
+			_fs_mem_free_file(allocator, to_rm);
+
+			// re-link previous cell
+			*prev_iterator = iterator->next;
+
+			mem_free(allocator, iterator, sizeof(fs_list_cell));
+
+			return FS_SUCCESS;
+		}
+
+		prev_iterator = &(iterator->next);
+		iterator = iterator->next;
+	}
+
+	// no file found
+	return FS_ERROR;
+}
+
+
+
+int8_t fs_get_file(fs_file *root, fs_file *working, const char *filepath)
+{
+
+}
 
