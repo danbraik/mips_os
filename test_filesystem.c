@@ -86,6 +86,7 @@ int main(int argc, char const *argv[])
 
 	mem_debug(&allocator);
 
+	// clean test
 	free(memory);
 
 	return 0;

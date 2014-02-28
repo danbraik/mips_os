@@ -151,8 +151,47 @@ int8_t fs_remove_file(mem_allocator *allocator,
 
 
 
-int8_t fs_get_file(fs_file *root, fs_file *working, const char *filepath)
+int8_t fs_get_file(fs_file *root, fs_file *working, 
+	const char *filepath)
 {
 	return FS_SUCCESS;
 }
 
+
+
+bool fs_is_directory(fs_file* file)
+{
+	return file != NULL 
+		&& file->file_type == FS_TYPE_DIRECTORY;
+}
+
+const char * fs_get_name(fs_file *file)
+{
+	if (file == NULL)
+		return NULL;
+	return file->name;
+}
+
+
+fs_iterator fs_get_first_child(fs_file *dir)
+{
+	if (!fs_is_directory(dir))
+		return NULL;
+	return dir->data.directory.children;
+}
+
+
+fs_iterator fs_get_next_child(fs_iterator iterator)
+{
+	if (iterator == NULL)
+		return NULL;
+	return iterator->next;
+}
+
+
+fs_file* fs_get_file_by_iter(fs_iterator iterator)
+{
+	if (iterator == NULL)
+		return NULL;
+	return iterator->file;
+}

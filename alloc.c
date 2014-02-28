@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include "alloc.h"
 
 
@@ -40,7 +41,9 @@ void * mem_alloc(mem_allocator *allocator, uint32_t size)
 			iterator->start = (uint8_t*) newnext;
 			iterator->size -= size;
 
+#ifdef TRACE_ALLOC
 			printf("ALLOC %p\t%u\n", ptr, size);
+#endif
 			return ptr;
 
 		} else {
@@ -61,7 +64,7 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 
 	_mem_correct_size(&size);
 
-	const uint8_t *start = (uint8_t*) ptr;
+	uint8_t *start = (uint8_t*) ptr;
 	mem_allocator *iterator = allocator;
 	mem_allocator *prev_iterator = NULL;
 
@@ -101,8 +104,9 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 				iterator->size = size;
 				iterator->start = start;
 			}
-
+#ifdef TRACE_ALLOC
 			printf("FREE %p\t%u\n", ptr, size);
+#endif
 			return;
 		} else {
 			// move iterator to next cell

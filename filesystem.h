@@ -2,6 +2,7 @@
 #define _FILESYSTEM_H_
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include "alloc.h"
 
 #define FS_ERROR 0
@@ -19,10 +20,10 @@ typedef struct {
 /*
  * FS_DIRECTORY
  */
-typedef struct fs_list_cell* fs_list;
+typedef struct fs_list_cell* fs_iterator;
 
 typedef struct {
-	fs_list children;
+	fs_iterator children;
 } fs_directory;
 
 /*
@@ -42,7 +43,7 @@ typedef struct {
 
 typedef struct fs_list_cell {
 	fs_file *file;
-	struct fs_list_cell *next;
+	fs_iterator next;
 } fs_list_cell;
 
 
@@ -64,8 +65,15 @@ int8_t fs_remove_file(mem_allocator *allocator,
 				fs_file *parent, 
 				const char *name);
 
+bool fs_is_directory(fs_file* file);
 
+const char * fs_get_name(fs_file *file);
 
+fs_iterator fs_get_first_child(fs_file *dir);
+
+fs_iterator fs_get_next_child(fs_iterator iterator);
+
+fs_file* fs_get_file_by_iter(fs_iterator iterator);
 
 
 //void fs_get_root_cursor(fs_file *dir);
