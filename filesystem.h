@@ -46,7 +46,9 @@ typedef struct fs_list_cell {
 } fs_list_cell;
 
 
-int8_t fs_init_directory(mem_allocator *allocator, fs_file *dir, const char *dirname);
+int8_t fs_new_root(mem_allocator *allocator, fs_file *root);
+
+int8_t fs_delete_root(mem_allocator *allocator, fs_file *root);
 
 int8_t fs_add_regular(mem_allocator *allocator, 
 				fs_file *dir, 

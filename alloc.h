@@ -9,6 +9,8 @@ typedef struct mem_allocator {
 	uint32_t size;
 } mem_allocator;
 
+
+
 /**
  * size must be greater or equal than sizeof(struct mem_allocator)
 */

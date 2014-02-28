@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 	mem_debug(&allocator);
 
 	puts("*** ALLOC TIME ***");
-	int max = 300;
+	int max = 3;
 
 	for(int i=0; i < max; ++i) {
 		allptr[i] = mem_alloc(&allocator, i+1);

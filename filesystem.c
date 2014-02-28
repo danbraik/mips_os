@@ -14,18 +14,47 @@ static int8_t _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *n
 }
 
 
-int8_t fs_init_directory(mem_allocator *allocator, 
-					fs_file *dir, 
-					const char *dirname)
+int8_t fs_new_root(mem_allocator *allocator, 
+					fs_file *root)
 {
-	if (dir == NULL)
+	if (root == NULL)
 		return FS_ERROR;
 
-	dir->file_type = FS_TYPE_DIRECTORY;
-	if (_fs_cpyname(allocator, dir, dirname) == FS_ERROR)
+	root->file_type = FS_TYPE_DIRECTORY;
+	if (_fs_cpyname(allocator, root, "/") == FS_ERROR)
 		return FS_ERROR;	
 
-	dir->data.directory.children = NULL;
+	root->data.directory.children = NULL;
+	return FS_SUCCESS;
+}
+
+
+static void _fs_remove_recursive_files(mem_allocator *allocator,
+	fs_file *parent)
+{
+	fs_list_cell *iterator = parent->data.directory.children;
+	while(iterator != NULL) {
+		fs_file *to_rm = iterator->file;
+
+		if (to_rm->file_type == FS_TYPE_DIRECTORY)
+			_fs_remove_recursive_files(allocator, to_rm);
+
+		_fs_mem_free_file(allocator, to_rm);
+		
+		iterator = iterator->next;
+		mem_free(allocator, iterator, sizeof(fs_list_cell));
+	}
+}
+
+int8_t fs_delete_root(mem_allocator *allocator, fs_file *root)
+{
+	if (root == NULL)
+		return FS_ERROR;
+
+	mem_free(allocator, root->name, strlen(root->name)+1);
+
+	_fs_remove_recursive_files(allocator, root);
+
 	return FS_SUCCESS;
 }
 
@@ -80,22 +109,7 @@ static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm)
 	mem_free(allocator, to_rm, sizeof(fs_file));
 }
 
-static void _fs_remove_recursive_files(mem_allocator *allocator,
-	fs_file *parent)
-{
-	fs_list_cell *iterator = parent->data.directory.children;
-	while(iterator != NULL) {
-		fs_file *to_rm = iterator->file;
 
-		if (to_rm->file_type == FS_TYPE_DIRECTORY)
-			_fs_remove_recursive_files(allocator, to_rm);
-
-		_fs_mem_free_file(allocator, to_rm);
-		
-		iterator = iterator->next;
-		mem_free(allocator, iterator, sizeof(fs_list_cell));
-	}
-}
 
 int8_t fs_remove_file(mem_allocator *allocator, 
 				fs_file *parent, 
@@ -136,6 +150,6 @@ int8_t fs_remove_file(mem_allocator *allocator,
 
 int8_t fs_get_file(fs_file *root, fs_file *working, const char *filepath)
 {
-
+	return FS_SUCCESS;
 }
 
