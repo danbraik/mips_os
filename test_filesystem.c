@@ -41,8 +41,12 @@ int main(int argc, char const *argv[])
 
 	mem_debug(&allocator);
 
-	if (fs_add_regular(&allocator, &root, "monFichier", NULL) == FS_ERROR)
+	puts("monFichier to add");
+
+	if (fs_add_regular(&allocator, &root, "monFichierapappapapapapapapapapapapaas", NULL) == FS_ERROR)
 		puts("Error pour fs_add_file");
+
+	puts("monFichier added");
 
 	fs_file *home, *user;
 	fs_add_dir(&allocator, &root, "home", &home);
@@ -57,30 +61,32 @@ int main(int argc, char const *argv[])
 	tree(&root, 0);
 	mem_debug(&allocator);
 
-	// if (fs_remove_file(&allocator, user, "algo.c") == FS_ERROR)
-	// 	puts("Error pour fs_remove_file");
+	if (fs_remove_file(&allocator, user, "algo.c") == FS_ERROR)
+		puts("Error pour fs_remove_file");
 
-	// tree(&root, 0);
-	// mem_debug(&allocator);
+	tree(&root, 0);
+	mem_debug(&allocator);
 
-	// if (fs_remove_file(&allocator, &root, "home") == FS_ERROR)
-	// 	puts("Error pour fs_remove_file");
-	// tree(&root, 0);
+	if (fs_remove_file(&allocator, &root, "home") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	tree(&root, 0);
 
-	// if (fs_remove_file(&allocator, &root, "usr") == FS_ERROR)
-	// 	puts("Error pour fs_remove_file");
-	// if (fs_remove_file(&allocator, &root, "tmp") == FS_ERROR)
-	// 	puts("Error pour fs_remove_file");
-	// if (fs_remove_file(&allocator, &root, "monFichier") == FS_ERROR)
-	// 	puts("Error pour fs_remove_file");
-	// tree(&root, 0);
+	if (fs_remove_file(&allocator, &root, "usr") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	if (fs_remove_file(&allocator, &root, "tmp") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	if (fs_remove_file(&allocator, &root, "monFichier") == FS_ERROR)
+		puts("Error pour fs_remove_file");
+	tree(&root, 0);
 
-	// mem_debug(&allocator);
+	mem_debug(&allocator);
 
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
 		puts("Error pour fs_delete_root");
 
 	mem_debug(&allocator);
+
+	free(memory);
 
 	return 0;
 }

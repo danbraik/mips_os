@@ -14,6 +14,7 @@ void mem_init(mem_allocator *allocator, uint8_t *start, uint32_t size)
 }
 
 
+
 static void _mem_correct_size(uint32_t *size)
 {
 	if (*size < sizeof(mem_allocator))
@@ -39,6 +40,7 @@ void * mem_alloc(mem_allocator *allocator, uint32_t size)
 			iterator->start = (uint8_t*) newnext;
 			iterator->size -= size;
 
+			printf("ALLOC %p\t%u\n", ptr, size);
 			return ptr;
 
 		} else {
@@ -100,6 +102,7 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 				iterator->start = start;
 			}
 
+			printf("FREE %p\t%u\n", ptr, size);
 			return;
 		} else {
 			// move iterator to next cell

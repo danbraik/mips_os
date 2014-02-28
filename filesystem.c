@@ -28,11 +28,18 @@ int8_t fs_new_root(mem_allocator *allocator,
 	return FS_SUCCESS;
 }
 
+static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm)
+{
+	mem_free(allocator, to_rm->name, strlen(to_rm->name)+1);
+	mem_free(allocator, to_rm, sizeof(fs_file));
+}
+
 
 static void _fs_remove_recursive_files(mem_allocator *allocator,
 	fs_file *parent)
 {
 	fs_list_cell *iterator = parent->data.directory.children;
+	fs_list_cell *prev_iterator = NULL;
 	while(iterator != NULL) {
 		fs_file *to_rm = iterator->file;
 
@@ -41,8 +48,9 @@ static void _fs_remove_recursive_files(mem_allocator *allocator,
 
 		_fs_mem_free_file(allocator, to_rm);
 		
+		prev_iterator = iterator;
 		iterator = iterator->next;
-		mem_free(allocator, iterator, sizeof(fs_list_cell));
+		mem_free(allocator, prev_iterator, sizeof(fs_list_cell));
 	}
 }
 
@@ -103,11 +111,6 @@ int8_t fs_add_dir(mem_allocator *allocator, fs_file *dir, const char *dirname, f
 	return _fs_add_child(allocator, dir, FS_TYPE_DIRECTORY, dirname, newdir);
 }
 
-static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm)
-{
-	mem_free(allocator, to_rm->name, strlen(to_rm->name)+1);
-	mem_free(allocator, to_rm, sizeof(fs_file));
-}
 
 
 
