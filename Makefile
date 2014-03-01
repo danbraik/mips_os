@@ -3,8 +3,11 @@
 # --------
 
 # Project to compile (use a preprocessor definition)
+#PROJECT_TO_COMPILE = TEST_ALLOC
+#PROJECT_TO_COMPILE = TEST_FILESYSTEM
 PROJECT_TO_COMPILE = TEST_COMMANDS
-TRACES = _ #TRACE_ALLOC
+
+#TRACES = -D TRACE_ALLOC
 
 
 # Executable name
@@ -17,7 +20,7 @@ OBJ_DIR = obj
 # Compiler
 CC = gcc
 # Compiler options
-CFLAGS = -D $(PROJECT_TO_COMPILE) -D $(TRACES) -std=c99 -W -Wall -Wextra -g # -Werror
+CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -std=c99 -W -Wall -Wextra -g # -Werror
 # Linker options
 LDFLAGS = 
 

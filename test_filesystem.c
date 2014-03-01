@@ -2,11 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "filesystem.h"
+#include "tests.h"
 
-#define MEM_SIZE 1024
 
-
-void tree(fs_file *file, int deep)
+static void tree(fs_file *file, int deep)
 {
 	if (file == NULL)
 		return;
@@ -52,7 +51,6 @@ int main(int argc, char const *argv[])
 	fs_add_dir(&allocator, &root, "home", &home);
 	fs_add_dir(&allocator, &root, "usr", NULL);
 	fs_add_dir(&allocator, &root, "tmp", NULL);
-
 
 	fs_add_dir(&allocator, home, "emmett", &user);
 	fs_add_regular(&allocator, user, "Lego Movie.avi", NULL);

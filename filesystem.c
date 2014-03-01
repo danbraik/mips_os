@@ -68,12 +68,35 @@ int8_t fs_delete_root(mem_allocator *allocator, fs_file *root)
 
 
 
+bool fs_is_directory(fs_file* file)
+{
+	return file != NULL 
+		&& file->file_type == FS_TYPE_DIRECTORY;
+}
+
+bool fs_is_regular(fs_file* file)
+{
+	return file != NULL 
+		&& file->file_type == FS_TYPE_REGULAR;	
+}
+
 static int8_t _fs_add_child(mem_allocator *allocator, 
 						fs_file *parent, uint8_t file_type, const char *name, fs_file **newchild)
 {
-	if (parent == NULL || parent->file_type != FS_TYPE_DIRECTORY)
+	if (!fs_is_directory(parent))
 		return FS_ERROR;
 
+	// search if child with the same name already exists
+	fs_iterator iterator = fs_get_first_child(parent);
+	while (iterator != NULL) {
+		if (strcmp(
+					fs_get_name(fs_get_file_by_iter(iterator)),
+					name) == 0)
+			return FS_ERROR;
+		iterator = fs_get_next_child(iterator);
+	}
+
+	// create new child
 	fs_file *new_child = mem_alloc(allocator, sizeof(fs_file));
 	if (new_child == NULL)
 		return FS_ERROR;
@@ -118,7 +141,7 @@ int8_t fs_remove_file(mem_allocator *allocator,
 				fs_file *parent, 
 				const char *name)
 {
-	if (parent == NULL || parent->file_type != FS_TYPE_DIRECTORY)
+	if (!fs_is_directory(parent))
 		return FS_ERROR;
 
 	fs_list_cell *iterator = parent->data.directory.children;
@@ -151,19 +174,6 @@ int8_t fs_remove_file(mem_allocator *allocator,
 
 
 
-int8_t fs_get_file(fs_file *root, fs_file *working, 
-	const char *filepath)
-{
-	return FS_SUCCESS;
-}
-
-
-
-bool fs_is_directory(fs_file* file)
-{
-	return file != NULL 
-		&& file->file_type == FS_TYPE_DIRECTORY;
-}
 
 const char * fs_get_name(fs_file *file)
 {
@@ -194,4 +204,38 @@ fs_file* fs_get_file_by_iter(fs_iterator iterator)
 	if (iterator == NULL)
 		return NULL;
 	return iterator->file;
+}
+
+
+int8_t fs_write_regular(mem_allocator *allocator, 
+						fs_file *file, 
+						const uint8_t *data, 
+						uint32_t size)
+{
+	if (!fs_is_regular(file))
+		return FS_ERROR;
+
+	uint8_t *start = (uint8_t*) mem_alloc(allocator, size);
+
+	if (start == NULL)
+		return FS_ERROR;
+
+	memcpy((void*)start, (void*)data, size);
+
+	file->data.regular.start = start;
+	file->data.regular.size = size;
+
+	return FS_SUCCESS;
+}
+
+
+int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size)
+{
+	if (!fs_is_regular(file))
+		return FS_ERROR;
+
+	*data = file->data.regular.start;
+	*size = file->data.regular.size;
+
+	return FS_SUCCESS;
 }

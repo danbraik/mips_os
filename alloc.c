@@ -3,7 +3,10 @@
 #include "alloc.h"
 
 
-void mem_init(mem_allocator *allocator, uint8_t *start, uint32_t size)
+
+void mem_init(mem_allocator *allocator, 
+	uint8_t *start, 
+	uint32_t size)
 {
 	allocator->start = start;
 	allocator->size = size;
@@ -22,7 +25,8 @@ static void _mem_correct_size(uint32_t *size)
 		*size = sizeof(mem_allocator);
 }
 
-void * mem_alloc(mem_allocator *allocator, uint32_t size)
+void * mem_alloc(mem_allocator *allocator, 
+	uint32_t size)
 {
 	_mem_correct_size(&size);
 
@@ -94,8 +98,6 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 				iterator->start = start;
 
 			} else if (can_merge_left) {
-				printf("%p %d = %p\n", prev_iterator->start,
-				prev_iterator->size, start);
 				prev_iterator->size += size;
 
 			// else, create intermediate cell	

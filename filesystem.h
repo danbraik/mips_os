@@ -66,6 +66,7 @@ int8_t fs_remove_file(mem_allocator *allocator,
 				const char *name);
 
 bool fs_is_directory(fs_file* file);
+bool fs_is_regular(fs_file* file);
 
 const char * fs_get_name(fs_file *file);
 
@@ -78,9 +79,15 @@ fs_file* fs_get_file_by_iter(fs_iterator iterator);
 
 //void fs_get_root_cursor(fs_file *dir);
 
-int8_t fs_get_file(fs_file *root, fs_file *working, const char *filepath);
 
-//int fs_write_file(mem_allocator *allocator, fs_file *file, const uint8_t *data, uint32_t size);
+int8_t fs_write_regular(mem_allocator *allocator, 
+						fs_file *file, 
+						const uint8_t *data, 
+						uint32_t size);
+
+int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size);
+
+fs_file* fs_get_file(fs_file *root, fs_file *working, const char *filepath);
 
 
 #endif
