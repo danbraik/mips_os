@@ -1,6 +1,8 @@
 #ifdef SHELL
 
 #include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "tests.h"
 #include "simu_mips.h"
@@ -169,7 +171,7 @@ int main(int argc, char const *argv[])
 														  arg1));
 		} else if (strcmp(cmd, "pwd") == 0) {
 			// pwd
-			ret_code = pwd(&myfilesystem);
+			ret_code = pwd(&allocator, &myfilesystem);
 		} else if (strcmp(cmd, "cd") == 0) {
 			// cd dirname
 			ret_code = cd(&myfilesystem, arg1);

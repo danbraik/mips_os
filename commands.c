@@ -1,5 +1,7 @@
 
 #include <string.h>
+#include <stdio.h>
+
 #include "simu_mips.h"
 
 #include "commands.h"
@@ -145,18 +147,46 @@ uint8_t rm(mem_allocator *allocator, fs_file *file)
 
 
 
-uint8_t pwd(cmd_filesystem *filesystem)
+typedef struct _pwd_struct
+{
+	char *name;
+	struct _pwd_struct *next;
+} _pwd_struct;
+
+
+uint8_t pwd(mem_allocator *allocator, 
+			cmd_filesystem *filesystem)
 {
 	if (filesystem == NULL)
 		return CMD_ERROR;
 
+	_pwd_struct *first = NULL, *old_f;
+
+	// compute the path from root to the working dir
 	fs_file *iterator = filesystem->working;
-	while(iterator != NULL) {
-		mips_putc('.');
-		mips_puts(fs_get_name(iterator));
+
+	// iterate over parent except root node
+	while(iterator != NULL && fs_get_parent(iterator) != NULL) {
+		_pwd_struct *cell = mem_alloc(allocator, sizeof(_pwd_struct));
+		cell->next = first;
+		cell->name = fs_get_name(iterator);
+		first = cell;
 		iterator = fs_get_parent(iterator);
 	}
+
+	// display root
+	mips_putc('/');
+
+	// display the path
+	while (first != NULL) {
+		mips_puts(first->name);
+		mips_putc('/');
+		old_f = first;
+		first = first->next;
+		mem_free(allocator, old_f, sizeof(_pwd_struct));
+	}
 	mips_putc('\n');
+
 	return CMD_SUCCESS;
 }
 

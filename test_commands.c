@@ -70,14 +70,14 @@ int main(int argc, char const *argv[])
 
 	puts("* Test PWD");
 	myfilesystem.working = user;
-	treat(pwd(&myfilesystem));
+	treat(pwd(&allocator, &myfilesystem));
 	puts("* End");
 
 	puts("* Test CD");
 	char filepath[] = "/home/.././home/./././user/";
 	printf("in : %s\n", filepath);
 	treat(cd(&myfilesystem, filepath));
-	pwd(&myfilesystem);
+	pwd(&allocator, &myfilesystem);
 	puts("* End");
 
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)

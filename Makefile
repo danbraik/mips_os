@@ -21,7 +21,7 @@ OBJ_DIR = obj
 # Compiler
 CC = gcc
 # Compiler options
-CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -std=c99 -g -W -Wall -Wextra # -Werror
+CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -Os -std=c99 -g -W -Wall -Wextra # -Werror
 # Linker options
 LDFLAGS = 
 
