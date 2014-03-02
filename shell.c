@@ -12,7 +12,37 @@
 
 COMMANDS :
 
+			man
+						display a short help
 
+			tree [path]
+						display the filesystem like a tree
+
+			ls [path]
+						display children of the directory or the 
+						information of a file
+
+			mkdir dirpath
+			
+			touch filepath
+						create empty file
+			
+			write filepath content
+						write the content into the file
+						create file if it doesnt exist
+			
+			cat filepath
+			
+			rm path
+			
+			pwd
+			
+			cd dirpath
+			
+			exec filepath
+						#todo
+			
+			exit
 
 
 */
@@ -43,12 +73,15 @@ int main(int argc, char const *argv[])
 
 	while (running) {
 
+		mips_puts("$ ");
+
 		mips_get_line(buffer, BUFFER_SIZE);
 		
 		length = strnlen(buffer, BUFFER_SIZE);
 		buffer[length-1] = '\0';
 
-		mips_puts_nl(buffer);
+		if (strlen(buffer) == 0)
+			continue;
 
 		// extract CMD
 		// [
@@ -84,8 +117,6 @@ int main(int argc, char const *argv[])
 		rest = buffer + index + 1;
 		// ]
 
-		mips_puts("CMD = ");
-		mips_puts_nl(cmd);
 		
 		uint8_t ret_code = 0;
 
@@ -111,9 +142,21 @@ int main(int argc, char const *argv[])
 			ret_code = touch(&allocator, myfilesystem.working, arg1);
 		} else if (strcmp(cmd, "write") == 0) {
 			// write regularname content
-			ret_code = write(&allocator, fs_get_file_by_path(myfilesystem.root, 
+			fs_file* file = fs_get_file_by_path(myfilesystem.root, 
 												myfilesystem.working, 
-												arg1), rest);
+												arg1);
+			ret_code = CMD_SUCCESS;
+			if (file == NULL) {
+				ret_code = touch(&allocator, myfilesystem.working, arg1);
+				file = fs_get_file_by_path(myfilesystem.root, 
+										   myfilesystem.working, 
+										   arg1);
+				if (file == NULL)
+					ret_code = CMD_ERROR;
+			}
+			if (ret_code == CMD_SUCCESS)
+				ret_code = write(&allocator, file, rest);
+
 		} else if (strcmp(cmd, "cat") == 0) {
 			// cat regularname
 			ret_code = cat(fs_get_file_by_path(myfilesystem.root, 
@@ -121,7 +164,9 @@ int main(int argc, char const *argv[])
 												arg1));
 		} else if (strcmp(cmd, "rm") == 0) {
 			// rm filename
-			ret_code = rm(&allocator, myfilesystem.working, arg1);
+			ret_code = rm(&allocator, fs_get_file_by_path(myfilesystem.root, 
+														  myfilesystem.working, 
+														  arg1));
 		} else if (strcmp(cmd, "pwd") == 0) {
 			// pwd
 			ret_code = pwd(&myfilesystem);
@@ -133,17 +178,33 @@ int main(int argc, char const *argv[])
 			ret_code = exec(&allocator, fs_get_file_by_path(myfilesystem.root, 
 												myfilesystem.working, 
 												arg1));
+		} else if (strcmp(cmd, "man") == 0) {
+			// man
+			mips_puts_nl(" man                ");
+			mips_puts_nl(" tree [path]        ");
+			mips_puts_nl(" ls [path]          ");
+			mips_puts_nl(" mkdir dirpath      ");
+			mips_puts_nl(" touch filepath     ");
+			mips_puts_nl(" rm path            ");
+			mips_puts_nl(" write filepath data");
+			mips_puts_nl(" cat filepath       ");
+			mips_puts_nl(" exec filepath      ");
+			mips_puts_nl(" pwd                ");
+			mips_puts_nl(" cd dirpath         ");
+			mips_puts_nl(" exit               ");
+
+			ret_code = CMD_SUCCESS;
 		} else if (strcmp(cmd, "exit") == 0) {
 			// exit
 			running = false;
 			ret_code = CMD_SUCCESS;
 		} else {
-			mips_puts_nl("> ukwn cmd");
+			mips_puts_nl("ukwn cmd");
 			ret_code = CMD_ERROR;
 		}
 
 		if (ret_code == CMD_ERROR)
-			mips_puts_nl("> error");
+			mips_puts_nl("error");
 	}
 
 	//******

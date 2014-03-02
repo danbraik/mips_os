@@ -54,7 +54,7 @@ int main(int argc, char const *argv[])
 	puts("* End");
 
 	puts("* Test WRITE");
-	treat(write(&allocator, file1, (const uint8_t*)"content_data_content_data_content_data_content_data", 52));
+	treat(write(&allocator, file1, (const uint8_t*)"content_data_content_data_content_data_content_data"));
 	puts("* End");
 
 	puts("* Test CAT");
@@ -62,9 +62,9 @@ int main(int argc, char const *argv[])
 	puts("* End");
 
 	puts("* Test RM");
-	puts("* rm /dossier /home/user/file2");
-	treat(rm(&allocator, user, "file2"));
-	treat(rm(&allocator, root, "dossier"));
+	tree(root);
+	puts("* rm /home/user/file1");
+	treat(rm(&allocator, file1));
 	tree(root);
 	puts("* End");
 
@@ -79,11 +79,12 @@ int main(int argc, char const *argv[])
 	treat(cd(&myfilesystem, filepath));
 	pwd(&myfilesystem);
 	puts("* End");
-	
+
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
 		puts("Error pour fs_delete_root");
 
 	// clean test
+	mem_debug(&allocator);
 	free(memory);
 
 	return 0;

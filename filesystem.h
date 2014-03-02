@@ -62,6 +62,9 @@ int8_t fs_add_dir(mem_allocator *allocator,
 				fs_file **out_new_dir);
 
 int8_t fs_remove_file(mem_allocator *allocator, 
+				fs_file *file);
+
+int8_t fs_remove_file_by_name(mem_allocator *allocator, 
 				fs_file *parent, 
 				const char *name);
 

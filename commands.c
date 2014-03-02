@@ -31,21 +31,25 @@ uint8_t tree(fs_file *file)
 }
 
 
-static void _ls(fs_file* file)
+static void _ls_regular(fs_file* file)
 {
 	// print size
 	uint32_t size = fs_get_regular_size(file);
-	uint32_t tmp = size;
-	int8_t nbc = 0;
-	while(tmp > 0) {
-		tmp /= 10;
-		nbc++;
-	}
-	if (nbc == 0)
-		mips_putc('0');
-	for(--nbc;nbc > 0; --nbc) {
-		mips_putc('0' + (size / (10*nbc)));
-	}
+	// uint32_t tmp = size;
+	// int8_t nbc = 0;
+	// while(tmp > 0) {
+	// 	tmp /= 10;
+	// 	nbc++;
+	// }
+	// if (nbc == 0)
+	// 	mips_putc('0');
+	// for(--nbc;nbc > 0; --nbc) {
+	// 	mips_putc('0' + (size / (10*nbc)));
+	// }
+	// mips_putc(' ');
+	char buf[5];
+	sprintf(buf, "%4u", size);
+	mips_puts(buf);
 	mips_putc(' ');
 
 	// print name
@@ -60,11 +64,17 @@ uint8_t ls(fs_file *file)
 	if (fs_is_directory(file)) {
 		fs_iterator iterator = fs_get_first_child(file);
 		while (iterator != NULL) {
-			_ls(fs_get_file_by_iter(iterator));
+			fs_file *file = fs_get_file_by_iter(iterator);
+			if (fs_is_regular(file)) {
+				_ls_regular(file);
+			} else if (fs_is_directory(file)) {
+				mips_puts("     ");
+				mips_puts_nl(fs_get_name(file));
+			}
 			iterator = fs_get_next_child(iterator);
 		}
 	} else {
-		_ls(file);
+		_ls_regular(file);
 	}
 
 	return CMD_SUCCESS;
@@ -122,12 +132,14 @@ uint8_t cat(fs_file *file)
 	return CMD_SUCCESS;
 }
 
-uint8_t rm(mem_allocator *allocator, fs_file *parent, const char *name)
+uint8_t rm(mem_allocator *allocator, fs_file *file)
 {
+	if (file == NULL)
+		return CMD_ERROR;
+
 	return 
 		(fs_remove_file(allocator, 
-			parent, 
-			name) == FS_SUCCESS) ? 
+			file) == FS_SUCCESS) ? 
 		CMD_SUCCESS : CMD_ERROR;
 }
 
