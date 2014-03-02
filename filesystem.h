@@ -47,9 +47,9 @@ typedef struct fs_list_cell {
 } fs_list_cell;
 
 
-int8_t fs_new_root(mem_allocator *allocator, fs_file *root);
+int8_t fs_new_root(mem_allocator *allocator, fs_file **root);
 
-int8_t fs_delete_root(mem_allocator *allocator, fs_file *root);
+int8_t fs_delete_root(mem_allocator *allocator, fs_file **root);
 
 int8_t fs_add_regular(mem_allocator *allocator, 
 				fs_file *dir, 
@@ -81,8 +81,7 @@ fs_get_file_by_name(
 	fs_file *dir, 
 	const char *name);
 
-//void fs_get_root_cursor(fs_file *dir);
-
+fs_file* fs_get_parent(fs_file* file);
 
 int8_t fs_write_regular(mem_allocator *allocator, 
 						fs_file *file, 

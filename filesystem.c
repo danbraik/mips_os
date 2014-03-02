@@ -15,17 +15,21 @@ static int8_t _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *n
 
 
 int8_t fs_new_root(mem_allocator *allocator, 
-					fs_file *root)
+					fs_file **root)
 {
 	if (root == NULL)
 		return FS_ERROR;
 
-	root->file_type = FS_TYPE_DIRECTORY;
-	if (_fs_cpyname(allocator, root, "/") == FS_ERROR)
+	*root = mem_alloc(allocator, sizeof(fs_file));
+	if (*root == NULL)
 		return FS_ERROR;
-	root->parent = NULL;
 
-	root->data.directory.children = NULL;
+	(*root)->file_type = FS_TYPE_DIRECTORY;
+	if (_fs_cpyname(allocator, *root, "/") == FS_ERROR)
+		return FS_ERROR;
+	(*root)->parent = NULL;
+
+	(*root)->data.directory.children = NULL;
 	return FS_SUCCESS;
 }
 
@@ -56,14 +60,17 @@ static void _fs_remove_recursive_files(mem_allocator *allocator,
 	}
 }
 
-int8_t fs_delete_root(mem_allocator *allocator, fs_file *root)
+int8_t fs_delete_root(mem_allocator *allocator, fs_file **root)
 {
 	if (root == NULL)
 		return FS_ERROR;
 
-	_fs_remove_recursive_files(allocator, root);
+	_fs_remove_recursive_files(allocator, *root);
 
-	mem_free(allocator, root->name, strlen(root->name)+1);
+	mem_free(allocator, (*root)->name, strlen((*root)->name)+1);
+	mem_free(allocator, *root, sizeof(fs_file));
+
+	*root = NULL;
 
 	return FS_SUCCESS;
 }
@@ -257,6 +264,11 @@ fs_file* fs_get_file_by_name(fs_file *dir, const char *name)
 }
 
 
+fs_file* fs_get_parent(fs_file* file)
+{
+	return (file == NULL) ? NULL : file->parent;
+}
+
 int8_t fs_write_regular(mem_allocator *allocator, 
 						fs_file *file, 
 						const uint8_t *data, 
@@ -306,7 +318,6 @@ static fs_file* _fs_get_file_by_path_rec(
 		filepath++;
 	}
 
-		
 	if (filepath[0] == '.') { // "."
 		if (filepath[1] == '.') { // ".."
 			return (working->parent == NULL) ? NULL : 
@@ -315,11 +326,9 @@ static fs_file* _fs_get_file_by_path_rec(
 					&filepath[2]
 					);
 		} else {
-			if (filepath[1] == '\0') {
-				return working;
-			} else if (filepath[1] == '/') {
-				filepath += 2;
-			}
+			return _fs_get_file_by_path_rec(
+				working, filepath+1
+				);
 		}
 	}
 

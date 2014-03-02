@@ -104,4 +104,34 @@ uint8_t rm(mem_allocator *allocator, fs_file *parent, const char *name)
 		CMD_SUCCESS : CMD_ERROR;
 }
 
-uint8_t exec(mem_allocator *allocator, fs_file *file);
+
+
+uint8_t pwd(cmd_filesystem *filesystem)
+{
+	if (filesystem == NULL)
+		return CMD_ERROR;
+
+	fs_file *iterator = filesystem->working;
+	while(iterator != NULL) {
+		printf(".%s", (fs_get_name(iterator)));
+		iterator = fs_get_parent(iterator);
+	}
+	puts("");
+	return CMD_SUCCESS;
+}
+
+
+uint8_t cd(cmd_filesystem *filesystem, char *filepath)
+{
+	fs_file *new_working = fs_get_file_by_path(
+			filesystem->root,
+			filesystem->working, 
+			filepath);
+	if (!fs_is_directory(new_working))
+		return CMD_ERROR;
+	filesystem->working = new_working;
+	return CMD_SUCCESS;
+}
+
+
+

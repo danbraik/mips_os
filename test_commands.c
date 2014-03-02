@@ -1,4 +1,5 @@
 #ifdef TEST_COMMANDS
+#include <stdio.h>
 
 #include "tests.h"
 
@@ -16,40 +17,44 @@ int main(int argc, char const *argv[])
 	uint8_t *memory = malloc(MEM_SIZE);
 	mem_init(&allocator, memory, MEM_SIZE);
 
-	fs_file root;
+	fs_file *root;
 	if(fs_new_root(&allocator, &root) == FS_ERROR)
 		puts("Error pour fs_init_directory");
-	if (fs_add_regular(&allocator, &root, "monFichierapappapapapapapapapapapapaas", NULL) == FS_ERROR)
+
+	if (fs_add_regular(&allocator, root, "monFichierapappapapapapapapapapapapaas", NULL) == FS_ERROR)
 		puts("Error pour fs_add_file");
 	fs_file *home, *user, *file1;
-	fs_add_dir(&allocator, &root, "home", &home);
+	fs_add_dir(&allocator, root, "home", &home);
 	fs_add_dir(&allocator, home, "user", &user);
 	fs_add_regular(&allocator, user, "file1", &file1);
 	fs_add_regular(&allocator, user, "file2", NULL);
+
+	cmd_filesystem myfilesystem;
+	myfilesystem.root = myfilesystem.working = root;
 	// begin tests
 
 	puts("* Test LS");
-	treat(ls(&root));
+	treat(ls(root));
 	puts("* End");
 
 	puts("* Test TREE");
-	treat(tree(&root));
+	treat(tree(root));
 	puts("* End");
 
 	puts("* Test MKDIR");
-	treat(mkdir(&allocator, &root, "dossier"));
-	tree(&root);
+	treat(mkdir(&allocator, root, "dossier"));
+	tree(root);
 	puts("* End");
 
 	puts("* Test TOUCH");
-	treat(touch(&allocator, &root, "fileTouched"));
-	tree(&root);
+	treat(touch(&allocator, root, "fileTouched"));
+	tree(root);
 	puts("* create twice fileTouched. Assert error.");
-	treat(touch(&allocator, &root, "fileTouched"));
+	treat(touch(&allocator, root, "fileTouched"));
 	puts("* End");
 
 	puts("* Test WRITE");
-	treat(write(&allocator, file1, "content_data_content_data_content_data_content_data", 52));
+	treat(write(&allocator, file1, (const uint8_t*)"content_data_content_data_content_data_content_data", 52));
 	puts("* End");
 
 	puts("* Test CAT");
@@ -59,8 +64,20 @@ int main(int argc, char const *argv[])
 	puts("* Test RM");
 	puts("* rm /dossier /home/user/file2");
 	treat(rm(&allocator, user, "file2"));
-	treat(rm(&allocator, &root, "dossier"));
-	tree(&root);
+	treat(rm(&allocator, root, "dossier"));
+	tree(root);
+	puts("* End");
+
+	puts("* Test PWD");
+	myfilesystem.working = user;
+	treat(pwd(&myfilesystem));
+	puts("* End");
+
+	puts("* Test CD");
+	char filepath[] = "/home/.././home/./././";
+	printf("in : %s\n", filepath);
+	treat(cd(&myfilesystem, filepath));
+	pwd(&myfilesystem);
 	puts("* End");
 
 
