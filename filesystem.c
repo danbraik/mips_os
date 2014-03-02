@@ -36,6 +36,9 @@ int8_t fs_new_root(mem_allocator *allocator,
 
 static void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
 {
+	if (fs_is_regular(to_rm) && to_rm->data.regular.size > 0) {
+		mem_free(allocator, to_rm->data.regular.start, to_rm->data.regular.size);
+	}
 	mem_free(allocator, to_rm->name, strlen(to_rm->name)+1);
 	mem_free(allocator, to_rm, sizeof(fs_file));
 }
@@ -138,7 +141,7 @@ static int8_t _fs_add_file(mem_allocator *allocator,
 						fs_file *parent, uint8_t file_type, 
 						const char *name, fs_file **newchild)
 {
-	if (!fs_is_directory(parent))
+	if (!fs_is_directory(parent) || strlen(name) == 0)
 		return FS_ERROR;
 
 	// search if child with the same name already exists
@@ -225,6 +228,12 @@ const char * fs_get_name(fs_file *file)
 	return file->name;
 }
 
+uint32_t fs_get_regular_size(fs_file *file)
+{
+	if(!fs_is_regular(file))
+		return 0;
+	return file->data.regular.size;
+}
 
 fs_iterator fs_get_first_child(fs_file *dir)
 {
@@ -277,6 +286,14 @@ int8_t fs_write_regular(mem_allocator *allocator,
 	if (!fs_is_regular(file))
 		return FS_ERROR;
 
+	// free old content
+	if (file->data.regular.size > 0) {
+		mem_free(allocator, 
+				 file->data.regular.start,
+				 file->data.regular.size);
+		file->data.regular.size = 0;
+	}
+
 	uint8_t *start = (uint8_t*) mem_alloc(allocator, size);
 
 	if (start == NULL)
@@ -326,6 +343,9 @@ static fs_file* _fs_get_file_by_path_rec(
 					&filepath[2]
 					);
 		} else {
+			// rm the '.' alias
+			// continue with recursivity
+			// because the filepath can be '././././.'
 			return _fs_get_file_by_path_rec(
 				working, filepath+1
 				);

@@ -69,6 +69,7 @@ bool fs_is_directory(fs_file* file);
 bool fs_is_regular(fs_file* file);
 
 const char * fs_get_name(fs_file *file);
+uint32_t fs_get_regular_size(fs_file *file);
 
 fs_iterator fs_get_first_child(fs_file *dir);
 

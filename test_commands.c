@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
 
 	fs_file *root;
 	if(fs_new_root(&allocator, &root) == FS_ERROR)
-		puts("Error pour fs_init_directory");
+		puts("Error pour fs_new_root");
 
 	if (fs_add_regular(&allocator, root, "monFichierapappapapapapapapapapapapaas", NULL) == FS_ERROR)
 		puts("Error pour fs_add_file");
@@ -74,15 +74,12 @@ int main(int argc, char const *argv[])
 	puts("* End");
 
 	puts("* Test CD");
-	char filepath[] = "/home/.././home/./././";
+	char filepath[] = "/home/.././home/./././user/";
 	printf("in : %s\n", filepath);
 	treat(cd(&myfilesystem, filepath));
 	pwd(&myfilesystem);
 	puts("* End");
-
-
-
-
+	
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
 		puts("Error pour fs_delete_root");
 

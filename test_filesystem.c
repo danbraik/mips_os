@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
 
 	fs_file *root;
 	if(fs_new_root(&allocator, &root) == FS_ERROR)
-		puts("Error pour fs_init_directory");
+		puts("Error pour fs_new_root");
 
 	mem_debug(&allocator);
 
