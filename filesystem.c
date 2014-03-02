@@ -20,23 +20,18 @@ int8_t fs_new_root(mem_allocator *allocator,
 	if (root == NULL)
 		return FS_ERROR;
 
-	root->data = mem_alloc(allocator, sizeof(fs_file_data));
-	if(root->data == NULL)
-		return FS_ERROR;
-
 	root->file_type = FS_TYPE_DIRECTORY;
 	if (_fs_cpyname(allocator, root, "/") == FS_ERROR)
-		return FS_ERROR;	
+		return FS_ERROR;
+	root->parent = NULL;
 
-	root->data->directory.children = NULL;
+	root->data.directory.children = NULL;
 	return FS_SUCCESS;
 }
 
 
-static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm, bool rm_data)
+static void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
 {
-	if (rm_data)
-		mem_free(allocator, to_rm->data, sizeof(fs_file_data));
 	mem_free(allocator, to_rm->name, strlen(to_rm->name)+1);
 	mem_free(allocator, to_rm, sizeof(fs_file));
 }
@@ -45,7 +40,7 @@ static void _fs_mem_free_file(mem_allocator *allocator, fs_file *to_rm, bool rm_
 static void _fs_remove_recursive_files(mem_allocator *allocator,
 	fs_file *parent)
 {
-	fs_list_cell *iterator = parent->data->directory.children;
+	fs_list_cell *iterator = parent->data.directory.children;
 	fs_list_cell *prev_iterator = NULL;
 	while(iterator != NULL) {
 		fs_file *to_rm = iterator->file;
@@ -53,7 +48,7 @@ static void _fs_remove_recursive_files(mem_allocator *allocator,
 		if (to_rm->file_type == FS_TYPE_DIRECTORY)
 			_fs_remove_recursive_files(allocator, to_rm);
 
-		_fs_mem_free_file(allocator, to_rm, true);
+		_fs_delete_file(allocator, to_rm);
 		
 		prev_iterator = iterator;
 		iterator = iterator->next;
@@ -69,7 +64,6 @@ int8_t fs_delete_root(mem_allocator *allocator, fs_file *root)
 	_fs_remove_recursive_files(allocator, root);
 
 	mem_free(allocator, root->name, strlen(root->name)+1);
-	mem_free(allocator, root->data, sizeof(fs_file_data));
 
 	return FS_SUCCESS;
 }
@@ -95,46 +89,45 @@ static int8_t _fs_push_front_cell(mem_allocator *allocator,
 	if (new_cell == NULL)
 		return FS_ERROR;
 	new_cell->file = file;
-	new_cell->next = parent->data->directory.children;
-	parent->data->directory.children = new_cell;
+	new_cell->next = parent->data.directory.children;
+	parent->data.directory.children = new_cell;
 	return FS_SUCCESS;
 }
 
-static int8_t _fs_new_child(mem_allocator *allocator,
-	uint8_t file_type, const char *name, fs_file **newchild)
+static int8_t _fs_new_file(mem_allocator *allocator,
+	uint8_t file_type, 
+	const char *name, 
+	fs_file *parent,
+	fs_file **out_new_file)
 {
 	fs_file *new_child = mem_alloc(allocator, sizeof(fs_file));
 	if (new_child == NULL)
 		return FS_ERROR;
-
-	new_child->data = mem_alloc(allocator, sizeof(fs_file_data));
-	if(new_child == NULL) {
-		mem_free(allocator, new_child, sizeof(fs_file));
-		return FS_ERROR;
-	}
 	
+	// init
 	new_child->file_type = file_type;
-	
-	// cpy name
 	if (_fs_cpyname(allocator, new_child, name) == FS_ERROR) {
-		mem_free(allocator, new_child->data, sizeof(fs_file_data));
 		mem_free(allocator, new_child, sizeof(fs_file));
 		return FS_ERROR;
 	}
+	new_child->parent = parent;
 
 	// init file data
 	if (file_type == FS_TYPE_REGULAR) {
-		new_child->data->regular.start = NULL;
-		new_child->data->regular.size = 0;
+		new_child->data.regular.start = NULL;
+		new_child->data.regular.size = 0;
 	} else if (file_type == FS_TYPE_DIRECTORY) {
-		new_child->data->directory.children = NULL;
+		new_child->data.directory.children = NULL;
 	}
 
-	if (newchild != NULL)
-		*newchild = new_child;
+	if (out_new_file != NULL)
+		*out_new_file = new_child;
+
+	return FS_SUCCESS;
 }
 
-static int8_t _fs_add_child(mem_allocator *allocator, 
+
+static int8_t _fs_add_file(mem_allocator *allocator, 
 						fs_file *parent, uint8_t file_type, 
 						const char *name, fs_file **newchild)
 {
@@ -144,19 +137,17 @@ static int8_t _fs_add_child(mem_allocator *allocator,
 	// search if child with the same name already exists
 	fs_iterator iterator = fs_get_first_child(parent);
 	while (iterator != NULL) {
-		if (strcmp(
-					fs_get_name(fs_get_file_by_iter(iterator)),
-					name) == 0)
+		if (strcmp(fs_get_name(fs_get_file_by_iter(iterator)), name) == 0)
 			return FS_ERROR;
 		iterator = fs_get_next_child(iterator);
 	}
 
 	fs_file *new_child = NULL;
-	if (_fs_new_child(allocator, file_type, name, &new_child) == FS_ERROR)
+	if (_fs_new_file(allocator, file_type, name, parent, &new_child) == FS_ERROR)
 		return FS_ERROR;
 
 	if (_fs_push_front_cell(allocator, parent, new_child) == FS_ERROR) {
-		_fs_mem_free_file(allocator, new_child, true);
+		_fs_delete_file(allocator, new_child);
 		return FS_ERROR;
 	}
 
@@ -167,65 +158,17 @@ static int8_t _fs_add_child(mem_allocator *allocator,
 }
 
 
-int8_t fs_add_regular(mem_allocator *allocator, fs_file *dir, const char *filename, fs_file **newfile)
+int8_t fs_add_regular(mem_allocator *allocator, fs_file *dir, const char *filename, fs_file **out_new_file)
 {
-	return _fs_add_child(allocator, dir, FS_TYPE_REGULAR, filename, newfile);
+	return _fs_add_file(allocator, dir, FS_TYPE_REGULAR, filename, out_new_file);
 }
-
-static int8_t _fs_add_phys_link(mem_allocator *allocator,
-						fs_file *dir, fs_file *file_to_like,
-						const char *linkname)
-{
-
-	fs_file *new_child = NULL;
-	if (_fs_new_child(allocator, 
-						file_to_like->file_type, 
-						linkname, &new_child) == FS_ERROR)
-		return FS_ERROR;
-	
-	mem_free(allocator, new_child->data, sizeof(fs_file_data));
-	new_child->data = file_to_like->data;
-
-	if (_fs_push_front_cell(allocator, dir, new_child) == FS_ERROR) {
-		_fs_mem_free_file(allocator, new_child, false);
-		return FS_ERROR;
-	}
-
-	return FS_SUCCESS;
-}
-
 
 int8_t fs_add_dir(mem_allocator *allocator, 
 		fs_file *dir, 
 		const char *dirname, 
-		fs_file **newdir)
+		fs_file **out_new_dir)
 {
-	if (!fs_is_directory(dir))
-		return FS_ERROR;
-
-	fs_file *new_dir;
-
-	if (_fs_add_child(allocator, dir, FS_TYPE_DIRECTORY, dirname, &new_dir) == FS_ERROR)
-		return FS_ERROR;
-
-	// if (_fs_add_phys_link(allocator,
-	// 					new_dir, new_dir,
-	// 					".") == FS_ERROR) {
-	// 	fs_remove_file(allocator, dir, dirname);
-	// 	return FS_ERROR;
-	// }
-
-	// if (_fs_add_phys_link(allocator,
-	// 					new_dir, dir,
-	// 					"..") == FS_ERROR) {
-	// 	fs_remove_file(allocator, dir, dirname);
-	// 	return FS_ERROR;
-	// }
-
-	if (newdir != NULL)
-		*newdir = new_dir;
-
-	return FS_SUCCESS;
+	return _fs_add_file(allocator, dir, FS_TYPE_DIRECTORY, dirname, out_new_dir);
 }
 
 
@@ -238,8 +181,8 @@ int8_t fs_remove_file(mem_allocator *allocator,
 	if (!fs_is_directory(parent))
 		return FS_ERROR;
 
-	fs_list_cell *iterator = parent->data->directory.children;
-	fs_list_cell **prev_iterator = &(parent->data->directory.children);
+	fs_list_cell *iterator = parent->data.directory.children;
+	fs_list_cell **prev_iterator = &(parent->data.directory.children);
 
 	while (iterator != NULL) {
 		fs_file *to_rm = iterator->file;
@@ -248,7 +191,7 @@ int8_t fs_remove_file(mem_allocator *allocator,
 			if (to_rm->file_type == FS_TYPE_DIRECTORY)
 				_fs_remove_recursive_files(allocator, to_rm);
 
-			_fs_mem_free_file(allocator, to_rm, true);
+			_fs_delete_file(allocator, to_rm);
 
 			// re-link previous cell
 			*prev_iterator = iterator->next;
@@ -271,7 +214,7 @@ int8_t fs_remove_file(mem_allocator *allocator,
 const char * fs_get_name(fs_file *file)
 {
 	if (file == NULL)
-		return NULL;
+		return "!nil_file!";
 	return file->name;
 }
 
@@ -280,7 +223,7 @@ fs_iterator fs_get_first_child(fs_file *dir)
 {
 	if (!fs_is_directory(dir))
 		return NULL;
-	return dir->data->directory.children;
+	return dir->data.directory.children;
 }
 
 
@@ -299,6 +242,20 @@ fs_file* fs_get_file_by_iter(fs_iterator iterator)
 	return iterator->file;
 }
 
+fs_file* fs_get_file_by_name(fs_file *dir, const char *name)
+{
+	if (fs_is_directory(dir)) {
+		fs_iterator iterator = fs_get_first_child(dir);
+		while (iterator != NULL) {
+			fs_file *file = fs_get_file_by_iter(iterator);
+			if (strcmp(name, fs_get_name(file)) == 0)
+				return file;
+			iterator = fs_get_next_child(iterator);
+		}
+	}
+	return NULL;
+}
+
 
 int8_t fs_write_regular(mem_allocator *allocator, 
 						fs_file *file, 
@@ -315,8 +272,8 @@ int8_t fs_write_regular(mem_allocator *allocator,
 
 	memcpy((void*)start, (void*)data, size);
 
-	file->data->regular.start = start;
-	file->data->regular.size = size;
+	file->data.regular.start = start;
+	file->data.regular.size = size;
 
 	return FS_SUCCESS;
 }
@@ -327,26 +284,88 @@ int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size)
 	if (!fs_is_regular(file))
 		return FS_ERROR;
 
-	*data = file->data->regular.start;
-	*size = file->data->regular.size;
+	*data = file->data.regular.start;
+	*size = file->data.regular.size;
 
 	return FS_SUCCESS;
 }
 
 
-static fs_file* _fs_get_file_by_path_rec()
+static fs_file* _fs_get_file_by_path_rec(
+	fs_file *working, 
+	char *filepath
+	)
 {
+	// "/tmp/../lol"
+
+	if (filepath[0] == '\0') {
+		return working;
+	} else if (filepath[0] == '/' && filepath[1] == '\0') {
+		return (fs_is_directory(working)) ? working : NULL;
+	} else if (filepath[0] == '/') {
+		filepath++;
+	}
+
+		
+	if (filepath[0] == '.') { // "."
+		if (filepath[1] == '.') { // ".."
+			return _fs_get_file_by_path_rec(
+				working->parent,
+				&filepath[2]
+				);
+		} else {
+			if (filepath[1] == '\0') {
+				return working;
+			} else if (filepath[1] == '/') {
+				filepath += 2;
+			}
+		}
+	}
+
+	uint8_t index = 0;
+	bool was_end;
+	while(filepath[index] != '\0' && filepath[index] != '/')
+		index++;
+
+	if (filepath[index] == '\0')
+		was_end = true;
+	else
+		filepath[index] = '\0'; // erase '/'
+
+	fs_file* child = fs_get_file_by_name(working, filepath);
+
+	if (!was_end) {
+		filepath[index] = '/';
+	}
+
+
+	if (child == NULL)
+		return NULL;
+
+	return _fs_get_file_by_path_rec(child,
+		filepath + index);
 
 }
 
 
+
 fs_file* fs_get_file_by_path(fs_file *root, 
 	fs_file *working, 
-	const char *filepath)
+	char *filepath)
 {
 	if(!fs_is_directory(root) || !fs_is_directory(working))
 		return NULL;
 
+	if(filepath[0] == '\0') { // strlen == 0
+		return NULL;
+	}
 
+	if (filepath[0] == '/') { // absolute path
+		return _fs_get_file_by_path_rec( 
+			root, filepath+1); // shift the '/'
+	} else {
+		return _fs_get_file_by_path_rec(
+			working, filepath);
+	}
 
 }

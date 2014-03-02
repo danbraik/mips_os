@@ -17,14 +17,11 @@ static void tree(fs_file *file, int deep)
 	} else if (file->file_type == FS_TYPE_DIRECTORY) {
 		printf("%s/\n", file->name);
 
-		if (strcmp(file->name, ".") != 0 
-			&& strcmp(file->name, "..") != 0) {
-			fs_list_cell *it = file->data->directory.children;
-			while (it != NULL) {
-				tree(it->file, deep+1);
-				it = it->next;
-			}
-		}
+		fs_list_cell *it = file->data.directory.children;
+		while (it != NULL) {
+			tree(it->file, deep+1);
+			it = it->next;
+		}	
 	}	
 }
 
@@ -55,9 +52,10 @@ int main(int argc, char const *argv[])
 	fs_add_dir(&allocator, &root, "usr", NULL);
 	fs_add_dir(&allocator, &root, "tmp", NULL);
 
-	fs_add_dir(&allocator, home, "emmett", &user);
+	fs_add_dir(&allocator, home, "user", &user);
 	fs_add_regular(&allocator, user, "Lego Movie.avi", NULL);
 	fs_add_regular(&allocator, user, "algo.c", NULL);
+	fs_add_regular(&allocator, user, "fileintouser", NULL);
 	
 	tree(&root, 0);
 	mem_debug(&allocator);
@@ -67,6 +65,21 @@ int main(int argc, char const *argv[])
 
 	tree(&root, 0);
 	mem_debug(&allocator);
+
+	fs_file *test;
+	char filename[] = "home";
+	test = fs_get_file_by_name(&root, filename);
+	puts("Test fs_get_file_by_name");
+	puts(filename); puts("==?"); puts(fs_get_name(test));
+
+	{
+	char filepath[] = "/home/../.";
+	test = fs_get_file_by_path(&root, home, filepath);
+	puts("Test fs_get_file_by_path");
+	puts(filepath); puts("==?"); puts(fs_get_name(test));
+	}
+
+
 
 	if (fs_remove_file(&allocator, &root, "home") == FS_ERROR)
 		puts("Error pour fs_remove_file(home)");
@@ -80,7 +93,7 @@ int main(int argc, char const *argv[])
 		puts("Error pour fs_remove_file(monFichier)");
 	tree(&root, 0);
 
-	mem_debug(&allocator);
+	//mem_debug(&allocator);
 
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
 		puts("Error pour fs_delete_root");
