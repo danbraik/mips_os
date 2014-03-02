@@ -73,7 +73,7 @@ int main(int argc, char const *argv[])
 	puts(filename); puts("==?"); puts(fs_get_name(test));
 
 	{
-	char filepath[] = "/home/../.";
+	char filepath[] = "/../..";
 	test = fs_get_file_by_path(&root, home, filepath);
 	puts("Test fs_get_file_by_path");
 	puts(filepath); puts("==?"); puts(fs_get_name(test));

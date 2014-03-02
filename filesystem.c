@@ -309,10 +309,11 @@ static fs_file* _fs_get_file_by_path_rec(
 		
 	if (filepath[0] == '.') { // "."
 		if (filepath[1] == '.') { // ".."
-			return _fs_get_file_by_path_rec(
-				working->parent,
-				&filepath[2]
-				);
+			return (working->parent == NULL) ? NULL : 
+				_fs_get_file_by_path_rec(
+					working->parent,
+					&filepath[2]
+					);
 		} else {
 			if (filepath[1] == '\0') {
 				return working;
