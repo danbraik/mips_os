@@ -17,10 +17,13 @@ static void tree(fs_file *file, int deep)
 	} else if (file->file_type == FS_TYPE_DIRECTORY) {
 		printf("%s/\n", file->name);
 
-		fs_list_cell *it = file->data.directory.children;
-		while (it != NULL) {
-			tree(it->file, deep+1);
-			it = it->next;
+		if (strcmp(file->name, ".") != 0 
+			&& strcmp(file->name, "..") != 0) {
+			fs_list_cell *it = file->data->directory.children;
+			while (it != NULL) {
+				tree(it->file, deep+1);
+				it = it->next;
+			}
 		}
 	}	
 }
@@ -29,7 +32,7 @@ static void tree(fs_file *file, int deep)
 int main(int argc, char const *argv[])
 {
 	mem_allocator allocator;
-	uint8_t *memory = malloc(MEM_SIZE);
+	const uint8_t *memory = malloc(MEM_SIZE);
 	mem_init(&allocator, memory, MEM_SIZE);
 
 	mem_debug(&allocator);
@@ -42,7 +45,7 @@ int main(int argc, char const *argv[])
 
 	puts("monFichier to add");
 
-	if (fs_add_regular(&allocator, &root, "monFichierapappapapapapapapapapapapaas", NULL) == FS_ERROR)
+	if (fs_add_regular(&allocator, &root, "monFichier", NULL) == FS_ERROR)
 		puts("Error pour fs_add_file");
 
 	puts("monFichier added");
@@ -60,21 +63,21 @@ int main(int argc, char const *argv[])
 	mem_debug(&allocator);
 
 	if (fs_remove_file(&allocator, user, "algo.c") == FS_ERROR)
-		puts("Error pour fs_remove_file");
+		puts("Error pour fs_remove_file(algo.c)");
 
 	tree(&root, 0);
 	mem_debug(&allocator);
 
 	if (fs_remove_file(&allocator, &root, "home") == FS_ERROR)
-		puts("Error pour fs_remove_file");
+		puts("Error pour fs_remove_file(home)");
 	tree(&root, 0);
 
 	if (fs_remove_file(&allocator, &root, "usr") == FS_ERROR)
-		puts("Error pour fs_remove_file");
+		puts("Error pour fs_remove_file(usr)");
 	if (fs_remove_file(&allocator, &root, "tmp") == FS_ERROR)
-		puts("Error pour fs_remove_file");
+		puts("Error pour fs_remove_file(tmp)");
 	if (fs_remove_file(&allocator, &root, "monFichier") == FS_ERROR)
-		puts("Error pour fs_remove_file");
+		puts("Error pour fs_remove_file(monFichier)");
 	tree(&root, 0);
 
 	mem_debug(&allocator);

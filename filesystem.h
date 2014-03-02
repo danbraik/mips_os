@@ -31,15 +31,16 @@ typedef struct {
  */
 enum {FS_TYPE_REGULAR, FS_TYPE_DIRECTORY};
 
+typedef union {
+	fs_regular regular;
+	fs_directory directory;
+} fs_file_data;
+
 typedef struct {
-	union {
-		fs_regular regular;
-		fs_directory directory;
-	} data;
+	fs_file_data *data;
 	uint8_t file_type; // REGULAR, DIRECTORY
 	char * name;
 } fs_file;
-
 
 typedef struct fs_list_cell {
 	fs_file *file;
@@ -87,7 +88,7 @@ int8_t fs_write_regular(mem_allocator *allocator,
 
 int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size);
 
-fs_file* fs_get_file(fs_file *root, fs_file *working, const char *filepath);
+fs_file* fs_get_file_by_path(fs_file *root, fs_file *working, const char *filepath);
 
 
 #endif
