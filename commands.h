@@ -15,7 +15,7 @@ typedef struct {
 
 uint8_t tree(fs_file *file);
 uint8_t ls(fs_file *file);
-uint8_t mkdir(mem_allocator *allocator, fs_file *parent, const char *dirname);
+uint8_t mkdir(mem_allocator *allocator, cmd_filesystem *filesystem, char *dirpath);
 uint8_t touch(mem_allocator *allocator, fs_file *parent, const char *filename);
 uint8_t write(mem_allocator *allocator, fs_file *file, const char *data_hex);
 uint8_t cat(fs_file *file);

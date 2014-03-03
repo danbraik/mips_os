@@ -83,8 +83,38 @@ uint8_t ls(fs_file *file)
 }
 
 uint8_t mkdir(mem_allocator *allocator, 
-	fs_file *parent, const char *dirname)
+	cmd_filesystem *filesystem, char *dirpath)
 {
+
+	uint32_t len = strlen(dirpath);
+	if (dirpath[len-1] == '/') {
+		dirpath[len-1] = '\0';
+		--len;
+	}
+	
+	int32_t index = len-1;
+	while(dirpath[index] != '/' && index >= 0)
+		--index;
+	
+	fs_file *parent = NULL;
+	char *dirname = NULL;
+
+	if (index < 0) {
+		parent = filesystem->working;
+		dirname = dirpath;	
+	} else if (index == 0) { // subdir of root : "/dir"
+		parent = filesystem->root;
+		dirname = dirpath + 1;
+	} else {
+		dirpath[index] = '\0';
+		parent = fs_get_file_by_path(filesystem->root,
+							filesystem->working,
+							dirpath);
+		if (parent == NULL)
+			return CMD_ERROR;
+		dirname = dirpath + index + 1;
+	}
+
 	return
 		(fs_add_dir(allocator, 
 			parent, 

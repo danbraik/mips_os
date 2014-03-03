@@ -137,8 +137,8 @@ int main(int argc, char const *argv[])
 												arg1);
 			ret_code = ls(file);
 		} else if (strcmp(cmd, "mkdir") == 0) {
-			// mkdir dirname
-			ret_code = mkdir(&allocator, myfilesystem.working, arg1);
+			// mkdir dirpath
+			ret_code = mkdir(&allocator, &myfilesystem, arg1);
 		} else if (strcmp(cmd, "touch") == 0) {
 			// touch regularname
 			ret_code = touch(&allocator, myfilesystem.working, arg1);
