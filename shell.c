@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tests.h"
 #include "simu_mips.h"
@@ -29,9 +30,11 @@ COMMANDS :
 			touch filepath
 						create empty file
 			
-			write filepath content
+			wtxt filepath text
 						write the content into the file
 						create file if it doesnt exist
+
+			whex filepath hex
 			
 			cat filepath
 			
@@ -44,12 +47,15 @@ COMMANDS :
 			exec filepath
 						#todo
 			
+			dbg
+						display memory debug
+
 			exit
 
 
 */
 
-int main(int argc, char const *argv[])
+int main(void)
 {
 	mem_allocator allocator;
 	uint8_t *memory = malloc(MEM_SIZE);
@@ -79,7 +85,7 @@ int main(int argc, char const *argv[])
 
 		mips_get_line(buffer, BUFFER_SIZE);
 		
-		length = strnlen(buffer, BUFFER_SIZE);
+		length = strlen(buffer);
 		buffer[length-1] = '\0';
 
 		if (strlen(buffer) == 0)
@@ -140,26 +146,26 @@ int main(int argc, char const *argv[])
 			// mkdir dirpath
 			ret_code = mkdir(&allocator, &myfilesystem, arg1);
 		} else if (strcmp(cmd, "touch") == 0) {
-			// touch regularname
-			ret_code = touch(&allocator, myfilesystem.working, arg1);
-		} else if (strcmp(cmd, "write") == 0) {
-			// write regularname content
-			fs_file* file = fs_get_file_by_path(myfilesystem.root, 
-												myfilesystem.working, 
-												arg1);
-			ret_code = CMD_SUCCESS;
-			if (file == NULL) {
-				ret_code = touch(&allocator, myfilesystem.working, arg1);
-				file = fs_get_file_by_path(myfilesystem.root, 
-										   myfilesystem.working, 
-										   arg1);
-				if (file == NULL)
-					ret_code = CMD_ERROR;
-			}
-			if (ret_code == CMD_SUCCESS)
-				ret_code = write(&allocator, file, rest);
+			// touch filepath
+			ret_code = touch(&allocator, 
+							 &myfilesystem, 
+							 arg1);
 
-		} else if (strcmp(cmd, "cat") == 0) {
+		} else if (strcmp(cmd, "wtxt") == 0) {
+			// wtxt filepath text
+			ret_code = wtxt(&allocator, 
+							&myfilesystem, 
+							arg1, 
+							rest);
+
+		} else if (strcmp(cmd, "whex") == 0) {
+			// whex filepath hex
+			ret_code = whex(&allocator, 
+							&myfilesystem, 
+							arg1, 
+							rest);
+
+		}else if (strcmp(cmd, "cat") == 0) {
 			// cat regularname
 			ret_code = cat(fs_get_file_by_path(myfilesystem.root, 
 												myfilesystem.working, 
@@ -188,11 +194,13 @@ int main(int argc, char const *argv[])
 			mips_puts_nl(" mkdir dirpath      ");
 			mips_puts_nl(" touch filepath     ");
 			mips_puts_nl(" rm path            ");
-			mips_puts_nl(" write filepath data");
+			mips_puts_nl(" wtxt filepath txt  ");
+			mips_puts_nl(" whex filepath hex  ");
 			mips_puts_nl(" cat filepath       ");
 			mips_puts_nl(" exec filepath      ");
 			mips_puts_nl(" pwd                ");
 			mips_puts_nl(" cd dirpath         ");
+			mips_puts_nl(" dbg                ");
 			mips_puts_nl(" exit               ");
 
 			ret_code = CMD_SUCCESS;
@@ -200,7 +208,11 @@ int main(int argc, char const *argv[])
 			// exit
 			running = false;
 			ret_code = CMD_SUCCESS;
-		} else {
+		} else if (strcmp(cmd, "dbg") == 0) {
+			// dbg
+			mem_debug(&allocator);
+			ret_code = CMD_SUCCESS;
+		}else {
 			mips_puts_nl("ukwn cmd");
 			ret_code = CMD_ERROR;
 		}

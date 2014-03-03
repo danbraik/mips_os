@@ -4,7 +4,8 @@
 
 
 
-static int8_t _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *name)
+
+STATIC int8_t _fs_cpyname(mem_allocator *allocator, fs_file *file, const char *name)
 {
 	uint32_t len = strlen(name) + 1;
 	if ((file->name = mem_alloc(allocator, len)) == NULL)
@@ -34,7 +35,7 @@ int8_t fs_new_root(mem_allocator *allocator,
 }
 
 
-static void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
+STATIC void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
 {
 	if (fs_is_regular(to_rm) && to_rm->data.regular.size > 0) {
 		mem_free(allocator, to_rm->data.regular.start, to_rm->data.regular.size);
@@ -44,7 +45,7 @@ static void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
 }
 
 
-static void _fs_remove_recursive_files(mem_allocator *allocator,
+STATIC void _fs_remove_recursive_files(mem_allocator *allocator,
 	fs_file *parent)
 {
 	fs_list_cell *iterator = parent->data.directory.children;
@@ -92,7 +93,7 @@ bool fs_is_regular(fs_file* file)
 		&& file->file_type == FS_TYPE_REGULAR;	
 }
 
-static int8_t _fs_push_front_cell(mem_allocator *allocator,
+STATIC int8_t _fs_push_front_cell(mem_allocator *allocator,
 		fs_file *parent, fs_file *file)
 {
 	fs_list_cell *new_cell = mem_alloc(allocator, sizeof(fs_list_cell));
@@ -104,7 +105,7 @@ static int8_t _fs_push_front_cell(mem_allocator *allocator,
 	return FS_SUCCESS;
 }
 
-static int8_t _fs_new_file(mem_allocator *allocator,
+STATIC int8_t _fs_new_file(mem_allocator *allocator,
 	uint8_t file_type, 
 	const char *name, 
 	fs_file *parent,
@@ -137,7 +138,7 @@ static int8_t _fs_new_file(mem_allocator *allocator,
 }
 
 
-static int8_t _fs_add_file(mem_allocator *allocator, 
+STATIC int8_t _fs_add_file(mem_allocator *allocator, 
 						fs_file *parent, uint8_t file_type, 
 						const char *name, fs_file **newchild)
 {
@@ -329,6 +330,11 @@ int8_t fs_write_regular(mem_allocator *allocator,
 	if (!fs_is_regular(file))
 		return FS_ERROR;
 
+	uint8_t *start = (uint8_t*) mem_alloc(allocator, size);
+
+	if (start == NULL && size > 0)
+		return FS_ERROR;
+
 	// free old content
 	if (file->data.regular.size > 0) {
 		mem_free(allocator, 
@@ -336,11 +342,6 @@ int8_t fs_write_regular(mem_allocator *allocator,
 				 file->data.regular.size);
 		file->data.regular.size = 0;
 	}
-
-	uint8_t *start = (uint8_t*) mem_alloc(allocator, size);
-
-	if (start == NULL)
-		return FS_ERROR;
 
 	memcpy((void*)start, (void*)data, size);
 
@@ -363,7 +364,7 @@ int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size)
 }
 
 
-static fs_file* _fs_get_file_by_path_rec(
+STATIC fs_file* _fs_get_file_by_path_rec(
 	fs_file *working, 
 	char *filepath
 	)
@@ -411,13 +412,11 @@ static fs_file* _fs_get_file_by_path_rec(
 		filepath[index] = '/';
 	}
 
-
 	if (child == NULL)
 		return NULL;
 
 	return _fs_get_file_by_path_rec(child,
 		filepath + index);
-
 }
 
 

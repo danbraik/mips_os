@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+#ifdef PRINT_STACK
+#define STATIC 
+#else
+#define STATIC static
+#endif
+
 typedef struct mem_allocator {
 	uint8_t *start; // == mem_allocator* (next cell)
 	uint32_t size;

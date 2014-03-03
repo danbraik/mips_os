@@ -7,7 +7,7 @@
 #include "commands.h"
 
 
-static void _tree_rec(fs_file *file, uint8_t deep)
+STATIC void _tree_rec(fs_file *file, uint8_t deep)
 {
 	for(uint8_t i = 0; i < deep ; ++i)
 		for(uint8_t j = 0; j < 4; j++)
@@ -33,7 +33,7 @@ uint8_t tree(fs_file *file)
 }
 
 
-static void _ls_regular(fs_file* file)
+STATIC void _ls_regular(fs_file* file)
 {
 	// print size
 	uint32_t size = fs_get_regular_size(file);
@@ -82,39 +82,44 @@ uint8_t ls(fs_file *file)
 	return CMD_SUCCESS;
 }
 
-uint8_t mkdir(mem_allocator *allocator, 
-	cmd_filesystem *filesystem, char *dirpath)
+STATIC void _get_parent_and_name(cmd_filesystem *filesystem,
+	char *path,
+	fs_file **out_parent, char **out_name)
 {
-
-	uint32_t len = strlen(dirpath);
-	if (dirpath[len-1] == '/') {
-		dirpath[len-1] = '\0';
+	uint32_t len = strlen(path);
+	if (path[len-1] == '/') {
+		path[len-1] = '\0';
 		--len;
 	}
 	
 	int32_t index = len-1;
-	while(dirpath[index] != '/' && index >= 0)
+	while(path[index] != '/' && index >= 0)
 		--index;
 	
+	if (index < 0) {
+		*out_parent = filesystem->working;
+		*out_name = path;	
+	} else if (index == 0) { // subdir of root : "/dir"
+		*out_parent = filesystem->root;
+		*out_name = path + 1;
+	} else {
+		path[index] = '\0';
+		*out_parent = fs_get_file_by_path(filesystem->root,
+									 	  filesystem->working,
+									 	  path);
+		*out_name = path + index + 1;
+	}
+}
+
+uint8_t mkdir(mem_allocator *allocator, 
+	cmd_filesystem *filesystem, char *dirpath)
+{
 	fs_file *parent = NULL;
 	char *dirname = NULL;
-
-	if (index < 0) {
-		parent = filesystem->working;
-		dirname = dirpath;	
-	} else if (index == 0) { // subdir of root : "/dir"
-		parent = filesystem->root;
-		dirname = dirpath + 1;
-	} else {
-		dirpath[index] = '\0';
-		parent = fs_get_file_by_path(filesystem->root,
-							filesystem->working,
-							dirpath);
-		if (parent == NULL)
-			return CMD_ERROR;
-		dirname = dirpath + index + 1;
-	}
-
+	_get_parent_and_name(filesystem, 
+						 dirpath, 
+						 &parent, 
+						 &dirname);
 	return
 		(fs_add_dir(allocator, 
 			parent, 
@@ -124,8 +129,14 @@ uint8_t mkdir(mem_allocator *allocator,
 }
 
 uint8_t touch(mem_allocator *allocator, 
-	fs_file *parent, const char *filename)
+	cmd_filesystem *filesystem, char *filepath)
 {
+	fs_file *parent = NULL;
+	char *filename = NULL;
+	_get_parent_and_name(filesystem, 
+						 filepath, 
+						 &parent, 
+						 &filename);
 	return 
 		(fs_add_regular(allocator, 
 			parent, 
@@ -134,20 +145,79 @@ uint8_t touch(mem_allocator *allocator,
 		CMD_SUCCESS : CMD_ERROR;
 }
 
-uint8_t write(mem_allocator *allocator, 
-	fs_file *file, 
-	const char *data_hex)
+STATIC uint8_t _write(mem_allocator *allocator,
+				   cmd_filesystem *filesystem,
+				   char *filepath,
+				   const uint8_t *data,
+				   uint32_t size)
 {
-	const uint8_t *data = (uint8_t*)data_hex;
-	uint32_t size = strlen(data_hex);
+	fs_file* file = fs_get_file_by_path(filesystem->root, 
+										filesystem->working, 
+										filepath);
+	if (file == NULL) {
+		// create file if it doesnot exist
+		if (touch(allocator, filesystem, filepath) == CMD_ERROR)
+			return CMD_ERROR;
+		file = fs_get_file_by_path(filesystem->root, 
+								   filesystem->working, 
+								   filepath);
+		if (file == NULL)
+			return CMD_ERROR;
+	}
 
 	return 
 		(fs_write_regular(allocator, 
-			file, 
+			file,
 			data, 
 			size) == FS_SUCCESS) ? 
 		CMD_SUCCESS : CMD_ERROR;
 }
+
+
+uint8_t  wtxt(mem_allocator *allocator, 
+			  cmd_filesystem *filesystem, 
+			  char *filepath, 
+			  const char *data_txt)
+{
+	const uint8_t *data = (uint8_t*)data_txt;
+	const uint32_t size = strlen(data_txt) + 1;
+
+	return _write(allocator, 
+				  filesystem, 
+				  filepath,
+				  data,
+				  size);
+}
+
+
+uint8_t whex(mem_allocator *allocator, 
+			  cmd_filesystem *filesystem, 
+			  char *filepath, 
+			  const char *data_hex)
+{
+	// uint32_t hex_size = strlen(data_hex);
+	// uint32_t estimate_size = (hex_size+1)/2;
+
+	// uint8_t *data = mem_alloc(allocator, estimate_size);
+	
+	// if (data == NULL)
+	// 	return CMD_ERROR;
+
+	// data[0] = 0;
+	// uint32_t size = 0;
+
+	uint8_t ret_code = _write(allocator, 
+							  filesystem, 
+							  filepath,
+							  (uint8_t*)data_hex,//data,
+							  0//size
+							  );
+
+	// mem_free(allocator, data, estimate_size);
+
+	return ret_code;
+}
+
 
 uint8_t cat(fs_file *file)
 {
@@ -179,7 +249,7 @@ uint8_t rm(mem_allocator *allocator, fs_file *file)
 
 typedef struct _pwd_struct
 {
-	char *name;
+	const char *name;
 	struct _pwd_struct *next;
 } _pwd_struct;
 
@@ -236,6 +306,6 @@ uint8_t cd(cmd_filesystem *filesystem, char *filepath)
 
 uint8_t exec(mem_allocator *allocator, fs_file *file)
 {
-
+	printf("%p %p\n", allocator, file);
 	return CMD_SUCCESS;
 }

@@ -8,7 +8,7 @@
 #PROJECT_TO_COMPILE = TEST_COMMANDS
 PROJECT_TO_COMPILE = SHELL
 
-#TRACES = -D TRACE_ALLOC
+TRACES = -D TRACE_ALLOC -D PRINT_STACK
 
 
 # Executable name
@@ -23,7 +23,7 @@ CC = gcc
 # Compiler options
 CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -std=c99 -g -W -Wall -Wextra # -Os # -Werror 
 # Linker options
-LDFLAGS = 
+LDFLAGS = -rdynamic
 
 # ----
 

@@ -1,6 +1,30 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <execinfo.h>
+
 #include "alloc.h"
+     
+
+void print_trace (void)
+{
+#ifdef PRINT_STACK
+	void *array[10];
+	size_t size;
+	char **strings;
+	size_t i;
+
+	size = backtrace (array, 10);
+	strings = backtrace_symbols (array, size);
+
+	printf("        Obtained %zd stack frames.\n", size);
+
+	for (i = 0; i < size; i++)
+		printf("        %s\n", strings[i]);
+
+	free (strings);
+#endif
+}
 
 
 
@@ -28,6 +52,9 @@ static void _mem_correct_size(uint32_t *size)
 void * mem_alloc(mem_allocator *allocator, 
 	uint32_t size)
 {
+	if (size == 0)
+		return NULL;
+
 	_mem_correct_size(&size);
 
 	mem_allocator *iterator = allocator;
@@ -47,6 +74,7 @@ void * mem_alloc(mem_allocator *allocator,
 
 #ifdef TRACE_ALLOC
 			printf("ALLOC %p\t%u\n", ptr, size);
+			print_trace();
 #endif
 			return ptr;
 
@@ -107,7 +135,8 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 				iterator->start = start;
 			}
 #ifdef TRACE_ALLOC
-			printf("FREE %p\t%u\n", ptr, size);
+			printf("FREE  %p\t%u\n", ptr, size);
+			print_trace();
 #endif
 			return;
 		} else {
@@ -126,7 +155,7 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 void mem_debug(mem_allocator *allocator)
 {
 
-	puts("* * * * *");
+	puts("* * * * * * * * * *");
 	puts("* DBG allocator");
 
 	
@@ -136,9 +165,9 @@ void mem_debug(mem_allocator *allocator)
 	mem_allocator *iterator = allocator;
 	
 	while (iterator != NULL) {
-		printf("Chunk[%d] @%p\n", free_chunks, iterator);
-		printf("      nxt @%p\n", iterator->start);
-		printf("      siz  %d\n", iterator->size);
+		printf("* Chunk[%d] @%p\n", free_chunks, iterator);
+		printf("*       nxt @%p\n", iterator->start);
+		printf("*       siz  %d\n", iterator->size);
 
 		free_mem += iterator->size;
 
@@ -151,5 +180,7 @@ void mem_debug(mem_allocator *allocator)
 	printf("* Free mem :  %u\n", free_mem);
 	printf("* Nb chunks : %u\n", free_chunks);
 
-	puts("* * * * *");
+	puts("* * * * * * * * * *");
+
+	print_trace();
 }
