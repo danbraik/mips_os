@@ -195,25 +195,59 @@ uint8_t whex(mem_allocator *allocator,
 			  char *filepath, 
 			  const char *data_hex)
 {
-	// uint32_t hex_size = strlen(data_hex);
-	// uint32_t estimate_size = (hex_size+1)/2;
+	uint32_t hex_size = strlen(data_hex);
+	uint32_t estimate_size = (hex_size+1)/2;
 
-	// uint8_t *data = mem_alloc(allocator, estimate_size);
+	uint8_t *data = mem_alloc(allocator, estimate_size);
 	
-	// if (data == NULL)
-	// 	return CMD_ERROR;
+	if (data == NULL)
+		return CMD_ERROR;
 
-	// data[0] = 0;
-	// uint32_t size = 0;
+	uint32_t size = 0;
+	
+	bool first = true;
+	bool ok = false;
+	uint8_t res = 0;
+
+	// convert 2 bytes base 16 to base 256
+	for(uint32_t i = 0 ; i < hex_size ; ++i) {
+		char c = data_hex[i];
+		// to upper case
+		if (c >= 'a' && c <= 'f') {
+			c -= 32;
+		}
+
+		// extract value
+		if (c >= '0' && c <= '9') {
+			ok = true;
+			res = c - '0';
+		} else if (c >= 'A' && c <= 'F') {
+			ok = true;
+			res = c - 'A' + 10;
+		}
+
+		if (ok) {
+			// store in upper/lower byte's part
+			if (first) {
+				data[size] = res << 4;
+			} else {
+				data[size] += res;				
+				size++;
+			}
+
+			first = !first;
+			ok = false;
+		}
+	}
 
 	uint8_t ret_code = _write(allocator, 
 							  filesystem, 
 							  filepath,
-							  (uint8_t*)data_hex,//data,
-							  0//size
+							  data,
+							  size
 							  );
 
-	// mem_free(allocator, data, estimate_size);
+	mem_free(allocator, data, estimate_size);
 
 	return ret_code;
 }
@@ -245,7 +279,7 @@ uint8_t rm(mem_allocator *allocator,
 		return CMD_ERROR;
 
 	if (fs_is_directory(file)) {
-		// test if the file to rm is a parent
+		// test if the file to rm is an ancestor
 		// of the working directory
 		fs_file *iterator = filesystem->working;
 		while(iterator != NULL && iterator != file) {

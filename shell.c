@@ -39,6 +39,8 @@ COMMANDS :
 			cat filepath
 			
 			rm path
+						remove a file or a directory 
+						(if it's not a working dir'ancestor)
 			
 			pwd
 			
@@ -124,7 +126,7 @@ int main(void)
 		// [
 		rest = buffer + index + 1;
 		// ]
-
+		
 		
 		uint8_t ret_code = 0;
 
