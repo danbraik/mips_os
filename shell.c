@@ -171,10 +171,8 @@ int main(void)
 												myfilesystem.working, 
 												arg1));
 		} else if (strcmp(cmd, "rm") == 0) {
-			// rm filename
-			ret_code = rm(&allocator, fs_get_file_by_path(myfilesystem.root, 
-														  myfilesystem.working, 
-														  arg1));
+			// rm path
+			ret_code = rm(&allocator, &myfilesystem, arg1);
 		} else if (strcmp(cmd, "pwd") == 0) {
 			// pwd
 			ret_code = pwd(&allocator, &myfilesystem);

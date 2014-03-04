@@ -234,10 +234,28 @@ uint8_t cat(fs_file *file)
 	return CMD_SUCCESS;
 }
 
-uint8_t rm(mem_allocator *allocator, fs_file *file)
+uint8_t rm(mem_allocator *allocator, 
+			cmd_filesystem *filesystem,
+			char *path)
 {
+	fs_file *file = fs_get_file_by_path(filesystem->root, 
+										filesystem->working,
+										path);
 	if (file == NULL)
 		return CMD_ERROR;
+
+	if (fs_is_directory(file)) {
+		// test if the file to rm is a parent
+		// of the working directory
+		fs_file *iterator = filesystem->working;
+		while(iterator != NULL && iterator != file) {
+			iterator = fs_get_parent(iterator);
+		}
+		if (iterator != NULL) {
+			// it is a parent, so we can't remove
+			return CMD_ERROR;
+		}
+	}
 
 	return 
 		(fs_remove_file(allocator, 
