@@ -1,8 +1,7 @@
 #ifdef SHELL
 
 #include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "tests.h"
@@ -35,6 +34,7 @@ COMMANDS :
 						create file if it doesnt exist
 
 			whex filepath hex
+						e.g. whex file 4142430A 4142430A
 			
 			cat filepath
 			
@@ -60,12 +60,17 @@ COMMANDS :
 int main(void)
 {
 	mem_allocator allocator;
+#ifdef USE_REAL_LIBC
 	uint8_t *memory = malloc(MEM_SIZE);
+#else
+	uint8_t map_memory[MEM_SIZE];
+	uint8_t *memory = (uint8_t*) &map_memory[0];
+#endif
 	mem_init(&allocator, memory, MEM_SIZE);
 
 	fs_file *root;
 	if(fs_new_root(&allocator, &root) == FS_ERROR)
-		puts("Error pour fs_new_root");
+		mips_puts("Err: fs_new_root");
 
 	cmd_filesystem myfilesystem;
 	myfilesystem.root = myfilesystem.working = root;
@@ -126,7 +131,7 @@ int main(void)
 		// [
 		rest = buffer + index + 1;
 		// ]
-		
+
 		
 		uint8_t ret_code = 0;
 
@@ -222,13 +227,16 @@ int main(void)
 	}
 
 	//******
-	//mem_debug(&allocator);
+	
 	// clean
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
-		puts("Error pour fs_delete_root");
+		mips_puts("Err: fs_delete_root");
 	mem_debug(&allocator);
+
+#ifdef USE_REAL_LIBC
 	// clean test
 	free(memory);
+#endif
 
 	return 0;
 }

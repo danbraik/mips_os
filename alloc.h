@@ -1,8 +1,6 @@
 #ifndef _ALLOC_H_
 #define _ALLOC_H_
 
-
-#include <stdlib.h>
 #include <inttypes.h>
 
 #ifdef PRINT_STACK

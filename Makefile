@@ -10,6 +10,8 @@ PROJECT_TO_COMPILE = SHELL
 
 TRACES = # -D TRACE_ALLOC -D PRINT_STACK
 
+LIBC = -D USE_REAL_LIBC
+
 
 # Executable name
 EXE = prog.exe
@@ -21,7 +23,9 @@ OBJ_DIR = obj
 # Compiler
 CC = gcc
 # Compiler options
-CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -std=c99 -g -W -Wall -Wextra # -Os # -Werror 
+CDEBUG = -g
+COPTIMIZE = # -Os
+CFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) $(LIBC) -std=c99 $(CDEBUG) $(COPTIMIZE) -W -Wall -Wextra # -Werror 
 # Linker options
 LDFLAGS = -rdynamic
 
