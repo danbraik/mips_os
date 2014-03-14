@@ -10,7 +10,6 @@ PROJECT_TO_COMPILE = SHELL
 
 TRACES = # -D TRACE_ALLOC -D PRINT_STACK
 
-
 AS = mips-elf-gcc
 ASFLAGS =  -c -Os
 CC = mips-elf-gcc

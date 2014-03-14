@@ -1,13 +1,18 @@
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifdef PRINT_STACK
-#include <execinfo.h>
+	#include <execinfo.h>
 #endif
 
+#ifdef USE_REAL_LIBC
+	#include <stdio.h>
+#else
+	#define NULL 0x0
+#endif
+
+
 #include "alloc.h"
-     
+
 
 void print_trace (void)
 {
@@ -157,7 +162,7 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 
 void mem_debug(mem_allocator *allocator)
 {
-
+#ifdef USE_REAL_LIBC
 	puts("* * * * * * * * * *");
 	puts("* DBG allocator");
 
@@ -186,4 +191,5 @@ void mem_debug(mem_allocator *allocator)
 	puts("* * * * * * * * * *");
 
 	print_trace();
+#endif
 }
