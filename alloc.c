@@ -1,7 +1,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef PRINT_STACK
 #include <execinfo.h>
+#endif
 
 #include "alloc.h"
      
