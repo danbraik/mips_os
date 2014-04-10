@@ -2,6 +2,7 @@
 #define SIMU_MIPS
 
 #include <inttypes.h>
+#include <string.h>
 
 
 void mips_get_line(char buffer[], uint8_t buf_size);
