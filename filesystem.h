@@ -84,17 +84,9 @@ int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size);
 /* DIR FCTs */
 fs_iterator fs_get_first_child(fs_file *dir);
 
-// iterator has to be valid
-extern fs_iterator fs_get_next_child(fs_iterator iterator) {
-	return iterator->next;
-}
+fs_iterator fs_get_next_child(fs_iterator iterator);
 
-// iterator has to be valid
-extern fs_file* fs_get_file_by_iter(fs_iterator iterator) {
-	//if (iterator == NULL)
-	//	return NULL;
-	return iterator->file;
-}
+fs_file* fs_get_file_by_iter(fs_iterator iterator);
 
 int8_t fs_add_regular(mem_allocator *allocator, 
 				fs_file *dir, 

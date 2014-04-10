@@ -287,20 +287,20 @@ fs_iterator fs_get_first_child(fs_file *dir)
 }
 
 
-// fs_iterator fs_get_next_child(fs_iterator iterator)
-// {
-// 	if (iterator == NULL)
-// 		return NULL;
-// 	return iterator->next;
-// }
+fs_iterator fs_get_next_child(fs_iterator iterator)
+{
+	if (iterator == NULL)
+		return NULL;
+	return iterator->next;
+}
 
 
-// fs_file* fs_get_file_by_iter(fs_iterator iterator)
-// {
-// 	if (iterator == NULL)
-// 		return NULL;
-// 	return iterator->file;
-// }
+fs_file* fs_get_file_by_iter(fs_iterator iterator)
+{
+	if (iterator == NULL)
+		return NULL;
+	return iterator->file;
+}
 
 fs_file* fs_get_file_by_name(fs_file *dir, const char *name)
 {
@@ -369,7 +369,7 @@ STATIC fs_file* _fs_get_file_by_path_rec(
 	char *filepath
 	)
 {
-	// "/tmp/../lol"
+	// "/tmp/../test"
 
 	if (filepath[0] == '\0') {
 		return working;

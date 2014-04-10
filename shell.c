@@ -43,6 +43,7 @@ COMMANDS :
 						(if it's not a working dir'ancestor)
 			
 			pwd
+						print working directory
 			
 			cd dirpath
 			
@@ -65,7 +66,6 @@ int main(void)
 {
 	mem_allocator allocator;
 
-
 #ifdef PC
 	uint8_t *memory = malloc(MEM_SIZE);
 #elif defined(QEMU)
@@ -74,7 +74,6 @@ int main(void)
 #elif MIPS
 	uint8_t *memory = 0x0;
 #endif
-
 
 	mem_init(&allocator, memory, MEM_SIZE);
 
@@ -94,7 +93,6 @@ int main(void)
 	uint32_t length = 0;
 
 	char *cmd, *arg1, *rest;
-
 
 	while (running) {
 
@@ -244,7 +242,7 @@ int main(void)
 	
 	//mem_debug(&allocator);
 
-#ifdef USE_REAL_LIBC
+#ifdef PC
 	// clean test
 	free(memory);
 #endif
