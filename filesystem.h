@@ -20,7 +20,9 @@ typedef struct {
 /*
  * FS_DIRECTORY
  */
-typedef struct fs_list_cell* fs_iterator;
+typedef 
+	struct fs_list_cell* 
+	fs_iterator;
 
 typedef struct {
 	fs_iterator children;
@@ -47,9 +49,52 @@ typedef struct fs_list_cell {
 } fs_list_cell;
 
 
+/* ROOT */
 int8_t fs_new_root(mem_allocator *allocator, fs_file **root);
 
 int8_t fs_delete_root(mem_allocator *allocator, fs_file **root);
+
+
+int8_t fs_remove_file(mem_allocator *allocator, 
+				fs_file *file);
+
+int8_t fs_remove_file_by_name(mem_allocator *allocator, 
+				fs_file *parent, 
+				const char *name);
+
+
+bool fs_is_directory(fs_file* file);
+bool fs_is_regular(fs_file* file);
+
+const char * fs_get_name(fs_file *file);
+fs_file* fs_get_parent(fs_file* file);
+
+
+/* REGULAR FCTs */
+uint32_t fs_get_regular_size(fs_file *file);
+
+int8_t fs_write_regular(mem_allocator *allocator, 
+						fs_file *file, 
+						const uint8_t *data, 
+						uint32_t size);
+
+int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size);
+
+
+/* DIR FCTs */
+fs_iterator fs_get_first_child(fs_file *dir);
+
+// iterator has to be valid
+extern fs_iterator fs_get_next_child(fs_iterator iterator) {
+	return iterator->next;
+}
+
+// iterator has to be valid
+extern fs_file* fs_get_file_by_iter(fs_iterator iterator) {
+	//if (iterator == NULL)
+	//	return NULL;
+	return iterator->file;
+}
 
 int8_t fs_add_regular(mem_allocator *allocator, 
 				fs_file *dir, 
@@ -61,38 +106,13 @@ int8_t fs_add_dir(mem_allocator *allocator,
 				const char *dirname,
 				fs_file **out_new_dir);
 
-int8_t fs_remove_file(mem_allocator *allocator, 
-				fs_file *file);
 
-int8_t fs_remove_file_by_name(mem_allocator *allocator, 
-				fs_file *parent, 
-				const char *name);
-
-bool fs_is_directory(fs_file* file);
-bool fs_is_regular(fs_file* file);
-
-const char * fs_get_name(fs_file *file);
-uint32_t fs_get_regular_size(fs_file *file);
-
-fs_iterator fs_get_first_child(fs_file *dir);
-
-fs_iterator fs_get_next_child(fs_iterator iterator);
-
-fs_file* fs_get_file_by_iter(fs_iterator iterator);
-
+/* NAVIGATE */
 fs_file* 
 fs_get_file_by_name(
 	fs_file *dir, 
 	const char *name);
 
-fs_file* fs_get_parent(fs_file* file);
-
-int8_t fs_write_regular(mem_allocator *allocator, 
-						fs_file *file, 
-						const uint8_t *data, 
-						uint32_t size);
-
-int8_t fs_get_memdata(fs_file *file, uint8_t **data, uint32_t *size);
 
 fs_file* 
 fs_get_file_by_path(

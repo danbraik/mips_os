@@ -48,8 +48,8 @@ STATIC void _fs_delete_file(mem_allocator *allocator, fs_file *to_rm)
 STATIC void _fs_remove_recursive_files(mem_allocator *allocator,
 	fs_file *parent)
 {
-	fs_list_cell *iterator = parent->data.directory.children;
-	fs_list_cell *prev_iterator = NULL;
+	fs_iterator iterator = parent->data.directory.children;
+	fs_iterator prev_iterator = NULL;
 	while(iterator != NULL) {
 		fs_file *to_rm = iterator->file;
 
@@ -287,20 +287,20 @@ fs_iterator fs_get_first_child(fs_file *dir)
 }
 
 
-fs_iterator fs_get_next_child(fs_iterator iterator)
-{
-	if (iterator == NULL)
-		return NULL;
-	return iterator->next;
-}
+// fs_iterator fs_get_next_child(fs_iterator iterator)
+// {
+// 	if (iterator == NULL)
+// 		return NULL;
+// 	return iterator->next;
+// }
 
 
-fs_file* fs_get_file_by_iter(fs_iterator iterator)
-{
-	if (iterator == NULL)
-		return NULL;
-	return iterator->file;
-}
+// fs_file* fs_get_file_by_iter(fs_iterator iterator)
+// {
+// 	if (iterator == NULL)
+// 		return NULL;
+// 	return iterator->file;
+// }
 
 fs_file* fs_get_file_by_name(fs_file *dir, const char *name)
 {
