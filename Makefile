@@ -9,12 +9,19 @@ PROJECT_TO_COMPILE = SHELL
 TRACES = # -D TRACE_ALLOC -D PRINT_STACK
 
 
+
+
+
 # ******** MIPS
+
+# MIPS | QEMU
+ENV = QEMU
+QEMU_GRAPHIC = # -nographic
 
 AS = mips-elf-gcc
 ASFLAGS = -c -Os
 CC = mips-elf-gcc
-CFLAGS = -Wall -Wextra -g -std=c99 -D $(PROJECT_TO_COMPILE)
+CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV)
 LD = mips-elf-gcc
 LDFLAGS = -T cep.ld
 
@@ -22,7 +29,11 @@ aaOBJS=shell.o alloc.o commands.o filesystem.o simu_mips.o
 
 .PHONY: all
 
-mips: os_mips
+mips: settings os_mips
+
+.PHONY: settings
+settings:
+	. ./settings.sh
 
 %.o: %.s
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -35,8 +46,8 @@ os_mips : $(aaOBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 .PHONY: run_mips
-run_mips: os_mips
-	qemu-system-mips -M mipscep -nographic --kernel os_mips
+run_mips: settings os_mips
+	qemu-system-mips -M mipscep $(QEMU_GRAPHIC) -show-cursor --kernel os_mips
 
 
 
@@ -56,7 +67,9 @@ OBJ_DIR = obj
 # Compiler
 mmCC = gcc
 # Compiler options
-mmCFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) -std=c99 -g -W -Wall -Wextra # -Os # -Werror 
+mmCDEBUG = -g
+mmCOPTIMIZE = # -Os
+mmCFLAGS = -D $(PROJECT_TO_COMPILE) $(TRACES) $(LIBC) -D PC -std=c99 $(CDEBUG) $(COPTIMIZE) -W -Wall -Wextra # -Werror 
 # Linker options
 mmLDFLAGS = -rdynamic
 
@@ -91,8 +104,8 @@ cleaner: clean
 	rm "$(EXE)"
 
 .PHONY: run_pc
-run_pc: pc
-	./pc
+run_pc: $(EXE)
+	./$(EXE)
 
 
 # ****

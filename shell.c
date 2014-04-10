@@ -57,15 +57,25 @@ COMMANDS :
 
 */
 
+
+
+
+
 int main(void)
 {
 	mem_allocator allocator;
-#ifdef USE_REAL_LIBC
+
+
+#ifdef PC
 	uint8_t *memory = malloc(MEM_SIZE);
-#else
+#elif defined(QEMU)
 	uint8_t map_memory[MEM_SIZE];
 	uint8_t *memory = (uint8_t*) &map_memory[0];
+#elif MIPS
+	uint8_t *memory = 0x0;
 #endif
+
+
 	mem_init(&allocator, memory, MEM_SIZE);
 
 	fs_file *root;
@@ -231,7 +241,8 @@ int main(void)
 	// clean
 	if (fs_delete_root(&allocator, &root) == FS_ERROR)
 		mips_puts("Err: fs_delete_root");
-	mem_debug(&allocator);
+	
+	//mem_debug(&allocator);
 
 #ifdef USE_REAL_LIBC
 	// clean test

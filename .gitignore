@@ -1,5 +1,5 @@
-prog.exe
 clone
 obj
 *.o
-os
+os_mips
+os_pc

@@ -4,7 +4,7 @@
 	#include <execinfo.h>
 #endif
 
-#ifdef USE_REAL_LIBC
+#ifdef PC
 	#include <stdio.h>
 #else
 	#define NULL 0x0
@@ -162,7 +162,7 @@ void mem_free(mem_allocator *allocator, void *ptr, uint32_t size)
 
 void mem_debug(mem_allocator *allocator)
 {
-#ifdef USE_REAL_LIBC
+#ifdef PC
 	puts("* * * * * * * * * *");
 	puts("* DBG allocator");
 

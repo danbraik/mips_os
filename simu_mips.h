@@ -3,7 +3,6 @@
 
 #include <inttypes.h>
 
-char mips_get_char();
 
 void mips_get_line(char buffer[], uint8_t buf_size);
 
