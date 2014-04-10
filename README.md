@@ -14,17 +14,16 @@ To execute on your computer with the real libc :
 
 <code>
 make pc && make run_pc
-# generate os_pc
 </code>
+Will generate os_pc.
 
 
 To compile for qemu (with mips-libc) :
 
 <code>
 make mips
-# generate os_mips
 </code>
-
+Will generate os_mips.
 
 To execute with qemu :
 <code>make run_mips</code>
