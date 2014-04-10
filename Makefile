@@ -47,7 +47,7 @@ os_mips : $(aaOBJS)
 
 .PHONY: run_mips
 run_mips: settings os_mips
-	qemu-system-mips -M mipscep $(QEMU_GRAPHIC) -show-cursor --kernel os_mips
+	qemu-system-mips -M mipscep $(QEMU_GRAPHIC) --show-cursor --kernel os_mips
 
 
 
