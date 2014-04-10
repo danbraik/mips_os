@@ -12,13 +12,19 @@ Require QEMU and mips-gcc-* tools
 
 To execute on your computer with the real libc :
 
-<code>make pc && make run_pc</code>
+<code>
+make pc && make run_pc
 # generate os_pc
+</code>
+
 
 To compile for qemu (with mips-libc) :
 
-<code>make mips</code>
+<code>
+make mips
 # generate os_mips
+</code>
+
 
 To execute with qemu :
 <code>make run_mips</code>
