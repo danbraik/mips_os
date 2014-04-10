@@ -9,8 +9,13 @@ COMPILE & RUN
 
 Require QEMU and mips-gcc-* tools
 
+See settings.h to specify intall directory:
+<code>
+export PATH="$PATH:/opt/mips-tools-cep/bin"
+</code>
 
-To execute on your computer with the real libc :
+
+To execute on your computer with the real libc:
 
 <code>
 make pc && make run_pc
@@ -18,14 +23,14 @@ make pc && make run_pc
 Will generate os_pc.
 
 
-To compile for qemu (with mips-libc) :
+To compile for qemu (with mips-libc):
 
 <code>
 make mips
 </code>
 Will generate os_mips.
 
-To execute with qemu :
+To execute with qemu:
 <code>make run_mips</code>
 
 
