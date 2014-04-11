@@ -16,12 +16,14 @@ TRACES = # -D TRACE_ALLOC -D PRINT_STACK
 
 # MIPS | QEMU
 ENV = QEMU
-QEMU_GRAPHIC = # -nographic
+# if ENV == QEMU, opts = {ENV_Q_GRAPHICS, ENV_Q_NO_GRAPHICS}
+ENV_OPTS = ENV_Q_NO_GRAPHICS
+QEMU_OPTS = -nographic
 
 AS = mips-elf-gcc
 ASFLAGS = -c -Os
 CC = mips-elf-gcc
-CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV)
+CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV) -D $(ENV_OPTS)
 LD = mips-elf-gcc
 LDFLAGS = -T cep.ld
 
@@ -47,7 +49,7 @@ os_mips : $(aaOBJS)
 
 .PHONY: run_mips
 run_mips: settings os_mips
-	qemu-system-mips -M mipscep $(QEMU_GRAPHIC) --show-cursor --kernel os_mips
+	qemu-system-mips -M mipscep $(QEMU_OPTS) -show-cursor --kernel os_mips
 
 
 

@@ -101,10 +101,17 @@ int main(void)
 		mips_get_line(buffer, BUFFER_SIZE);
 		
 		length = strlen(buffer);
+		
+		if (strlen(buffer) == 0) { // end of file
+			mips_puts_nl("exit");
+			running = false;
+			continue;
+		}
+		
 		buffer[length-1] = '\0';
 
 		if (strlen(buffer) == 0)
-			continue;
+			continue; // there was only an '\n'
 
 		// extract CMD
 		// [
