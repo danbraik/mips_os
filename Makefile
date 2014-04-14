@@ -9,31 +9,30 @@ PROJECT_TO_COMPILE = SHELL
 TRACES = # -D TRACE_ALLOC -D PRINT_STACK
 
 
-
+MIPS_TOOLS_BIN=/opt/mips-tools-cep/bin
 
 
 # ******** MIPS
 
 # MIPS | QEMU
 ENV = QEMU
-QEMU_GRAPHIC = # -nographic
+QEMU_GRAPHIC = -nographic
 
-AS = mips-elf-gcc
+AS = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 ASFLAGS = -c -Os
-CC = mips-elf-gcc
+CC = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV)
-LD = mips-elf-gcc
+LD = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 LDFLAGS = -T cep.ld
 
 aaOBJS=shell.o alloc.o commands.o filesystem.o simu_mips.o
 
 .PHONY: all
+all: mips pc
 
-mips: settings os_mips
+.PHONY: mips
+mips: os_mips
 
-.PHONY: settings
-settings:
-	. ./settings.sh
 
 %.o: %.s
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -46,9 +45,8 @@ os_mips : $(aaOBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 .PHONY: run_mips
-run_mips: settings os_mips
-	qemu-system-mips -M mipscep $(QEMU_GRAPHIC) --show-cursor --kernel os_mips
-
+run_mips: os_mips 
+	"$(MIPS_TOOLS_BIN)/qemu-system-mips" -M mipscep $(QEMU_GRAPHIC) -show-cursor --kernel os_mips
 
 
 
@@ -78,9 +76,12 @@ mmLDFLAGS = -rdynamic
 SRC = $(wildcard $(SRC_DIR)/[^N]*.c)
 mmOBJS = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
+.PHONY: debug
 debug:
-	echo $(SRC)
+	echo $(SRC) ; \
+	echo "$$PATH"
 
+.PHONY: pc
 pc: $(EXE)
 
 $(EXE): $(mmOBJS) 
@@ -93,15 +94,10 @@ $(OBJ_DIR):
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
 	$(mmCC) $(mmCFLAGS) -o $@ -c $<
 
-.PHONY: clean
+.PHONY: clean_pc
 clean_pc:
 	@rm $(mmOBJS)
 
-.PHONY: cleaner
-cleaner: clean
-	# The || avoid errors if OBJ_DIR does not exist
-	@rmdir "$(OBJ_DIR)" || echo ; \
-	rm "$(EXE)"
 
 .PHONY: run_pc
 run_pc: $(EXE)
