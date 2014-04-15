@@ -60,7 +60,7 @@ EXE = os_pc
 
 # Directories
 SRC_DIR = .
-OBJ_DIR = obj
+OBJ_DIR = obj_pc
 
 # Compiler
 mmCC = gcc
@@ -91,7 +91,7 @@ $(EXE): $(mmOBJS)
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(mmCC) $(mmCFLAGS) -o $@ -c $<
 
 .PHONY: clean_pc
