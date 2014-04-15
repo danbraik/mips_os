@@ -16,13 +16,12 @@ MIPS_TOOLS_BIN=/opt/mips-tools-cep/bin
 
 # MIPS | QEMU
 ENV = QEMU
-# if ENV == QEMU, opts = {ENV_Q_GRAPHICS, ENV_Q_NO_GRAPHICS}
-ENV_OPTS = ENV_Q_NO_GRAPHICS
-QEMU_OPTS = -nographic
+QEMU_GRAPHIC = -nographic
 
 AS = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 ASFLAGS = -c -Os
-CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV) -D $(ENV_OPTS)
+CC = $(MIPS_TOOLS_BIN)/mips-elf-gcc
+CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV)
 LD = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 LDFLAGS = -T cep.ld
 
@@ -47,11 +46,12 @@ os_mips : $(aaOBJS)
 
 .PHONY: run_mips
 run_mips: os_mips 
-	"$(MIPS_TOOLS_BIN)/qemu-system-mips" -M mipscep $(QEMU_OPTS) -show-cursor --kernel os_mips
+	"$(MIPS_TOOLS_BIN)/qemu-system-mips" -M mipscep $(QEMU_GRAPHIC) -show-cursor --kernel os_mips
 
 
 
 # ************ PC 
+
 
 
 
