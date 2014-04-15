@@ -37,7 +37,7 @@ mips: os_mips
 %.o: %.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
-.PHONY: clean
+.PHONY: clean_mips
 clean_mips:
 	$(RM) os_mips $(aaOBJS)
 
