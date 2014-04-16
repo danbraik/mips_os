@@ -16,12 +16,14 @@ MIPS_TOOLS_BIN=/opt/mips-tools-cep/bin
 
 # MIPS | QEMU
 ENV = QEMU
+ENV_OPT = ENV_Q_NO_GRAPHICS 
 QEMU_GRAPHIC = -nographic
+
 
 AS = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 ASFLAGS = -c -Os
 CC = $(MIPS_TOOLS_BIN)/mips-elf-gcc
-CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV)
+CFLAGS = -Wall -Wextra -std=c99 -D $(PROJECT_TO_COMPILE) -D $(ENV) -D $(ENV_OPT)
 LD = $(MIPS_TOOLS_BIN)/mips-elf-gcc
 LDFLAGS = -T cep.ld
 
