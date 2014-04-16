@@ -94,6 +94,8 @@ int main(void)
 
 	char *cmd, *arg1, *rest;
 
+mips_puts_nl(" - SHELL v1.0 - ");
+
 	while (running) {
 
 		mips_puts("$ ");
